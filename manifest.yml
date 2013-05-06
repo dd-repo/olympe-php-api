@@ -1,0 +1,13 @@
+--- 
+applications: 
+  .: 
+    mem: 128M
+    instances: 1
+    name: php-0Rd1qOho
+    url: api.olympe.in
+    framework: 
+      info: 
+        mem: 128M
+        exec: 
+        description: PHP Application
+      name: php

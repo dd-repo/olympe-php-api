@@ -1,0 +1,37 @@
+
+CREATE TABLE quotas (
+	quota_id		INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+	quota_name		VARCHAR(100) CHARSET UTF8 NOT NULL,
+	PRIMARY KEY (quota_id),
+	UNIQUE (quota_name)
+) ENGINE=INNODB;
+
+CREATE TABLE user_quota (
+	user_id			INT(11) UNSIGNED NOT NULL,
+	quota_id		INT(11) UNSIGNED NOT NULL,
+	quota_used		INT(11) UNSIGNED NOT NULL DEFAULT 0,
+	quota_max		INT(11) UNSIGNED NOT NULL DEFAULT 0,
+	PRIMARY KEY (user_id, quota_id),
+	FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+	FOREIGN KEY (quota_id) REFERENCES quotas (quota_id) ON DELETE CASCADE
+) ENGINE=INNODB;
+
+CREATE TABLE register (
+	register_id		INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+	register_user	VARCHAR(100) CHARSET UTF8 NOT NULL,
+	register_email	VARCHAR(150) CHARSET UTF8 NOT NULL,
+	register_code	VARCHAR(32) CHARSET UTF8 NOT NULL,
+	register_date	INT(11) UNSIGNED NOT NULL,
+	PRIMARY KEY (register_id),
+	UNIQUE (register_user),
+	UNIQUE (register_email)
+) ENGINE=INNODB;
+
+CREATE TABLE `databases` (
+	database_name VARCHAR(30) CHARSET UTF8 NOT NULL,
+	database_user INT(11) UNSIGNED NOT NULL,
+	database_type TINYTEXT CHARSET UTF8 NOT NULL,
+	database_desc TEXT CHARSET UTF8 NOT NULL,
+	PRIMARY KEY (database_name),
+	FOREIGN KEY (database_user) REFERENCES users (user_id) ON DELETE CASCADE
+) ENGINE=INNODB;
