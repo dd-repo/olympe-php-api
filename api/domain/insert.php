@@ -121,11 +121,11 @@ $a->setExecute(function() use ($a)
 	// GET SITE INFO
 	// =================================
 	if( is_numeric($site) )
-		$dn = $GLOBALS['ldap']->getDNfromUID($site);
+		$dn_site = $GLOBALS['ldap']->getDNfromUID($site);
 	else
-		$dn = ldap::buildDN(ldap::SUBDOMAIN, $GLOBALS['CONFIG']['DOMAIN'], $site);
+		$dn_site = ldap::buildDN(ldap::SUBDOMAIN, $GLOBALS['CONFIG']['DOMAIN'], $site);
 		
-	$site_data = $GLOBALS['ldap']->read($dn);
+	$site_data = $GLOBALS['ldap']->read($dn_site);
 	
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
