@@ -24,6 +24,22 @@ $a->addParam(array(
 	'action'=>true
 	));
 $a->addParam(array(
+	'name'=>array('site_name', 'site', 'site_id'),
+	'description'=>'The name or id of the target site',
+	'optional'=>false,
+	'minlength'=>2,
+	'maxlength'=>50,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	));
+$a->addParam(array(
+	'name'=>array('directory', 'dir'),
+	'description'=>'The target directory in the site',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>50,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	));
+$a->addParam(array(
 	'name'=>array('user_name', 'username', 'login', 'user', 'user_id', 'uid'),
 	'description' => 'The name or id of the target user.',
 	'optional'=>false,
@@ -43,6 +59,8 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$domain = $a->getParam('domain');
+	$site = $a->getParam('site');
+	$dir = $a->getParam('dir');
 	$user = $a->getParam('user');
 	
 	if( is_numeric($domain) )
@@ -98,16 +116,21 @@ $a->setExecute(function() use ($a)
 	$data = $handler->build($params);
 	
 	$GLOBALS['ldap']->create($dn, $data);
-
+	
+	// =================================
+	// GET SITE INFO
+	// =================================
+	if( is_numeric($site) )
+		$dn = $GLOBALS['ldap']->getDNfromUID($site);
+	else
+		$dn = ldap::buildDN(ldap::SUBDOMAIN, $GLOBALS['CONFIG']['DOMAIN'], $site);
 		
-	// =================================
-	// SYNC QUOTA
-	// =================================
-	syncQuota('DOMAINS', $user);
-
+	$site_data = $GLOBALS['ldap']->read($dn);
+	
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
+	$data['destination'] = $site_data['homeDirectory'] . '/' . $dir;
 	$GLOBALS['system']->create(system::DOMAIN, $data);
 	
 	// =================================
@@ -115,13 +138,9 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$data_users = array('ou' => 'Users', 'objectClass' => array('top', 'organizationalUnit'));
 	$data_groups = array('ou' => 'Groups', 'objectClass' => array('top', 'organizationalUnit'));
-	$data_apps = array('ou' => 'Apps', 'objectClass' => array('top', 'organizationalUnit'));
-	$data_repos = array('ou' => 'Repos', 'objectClass' => array('top', 'organizationalUnit'));
 	$data_people = array('ou' => 'People', 'objectClass' => array('top', 'organizationalUnit'));
 	$GLOBALS['ldap']->create('ou=Users,' . $dn, $data_users);
 	$GLOBALS['ldap']->create('ou=Groups,' . $dn, $data_groups);
-	$GLOBALS['ldap']->create('ou=Apps,' . $dn, $data_groups);
-	$GLOBALS['ldap']->create('ou=Repos,' . $dn, $data_repos);
 	$GLOBALS['ldap']->create('ou=People,' . $dn, $data_people);
 
 	// =================================
@@ -132,21 +151,11 @@ $a->setExecute(function() use ($a)
 	$handler = new subdomain();
 	$data = $handler->build($params);
 	$GLOBALS['ldap']->create($dn, $data);
-	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, 'mail');
-	$params = array('dn' => $dn, 'subdomain' => 'mail', 'uid' => 'mail', 'domain' => $domain, 'owner' => $user_dn);
-	$handler = new subdomain();
-	$data = $handler->build($params);
-	$GLOBALS['ldap']->create($dn, $data);
-	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, 'admin');
-	$params = array('dn' => $dn, 'subdomain' => 'admin', 'uid' => 'admin', 'domain' => $domain, 'owner' => $user_dn);
-	$handler = new subdomain();
-	$data = $handler->build($params);
-	$GLOBALS['ldap']->create($dn, $data);
-	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, 'stats');
-	$params = array('dn' => $dn, 'subdomain' => 'stats', 'uid' => 'stats', 'domain' => $domain, 'owner' => $user_dn);
-	$handler = new subdomain();
-	$data = $handler->build($params);
-	$GLOBALS['ldap']->create($dn, $data);
+	
+	// =================================
+	// SYNC QUOTA
+	// =================================
+	syncQuota('DOMAINS', $user);
 	
 	responder::send(array("domain"=>$domain, "id"=>$result['uidNumber']));
 });

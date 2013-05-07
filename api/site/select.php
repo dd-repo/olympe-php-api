@@ -51,7 +51,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET PARAMETERS
 	// =================================
-	$subdomain = $a->getParam('subdomain');
+	$site = $a->getParam('site');
 	$user = $a->getParam('user');
 
 	// =================================
@@ -68,36 +68,34 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT REMOTE ENTRIES
 	// =================================
-	if( $subdomain !== null )
+	if( $site !== null )
 	{
-		if( is_numeric($subdomain) )
-			$dn = $GLOBALS['ldap']->getDNfromUID($subdomain);
+		if( is_numeric($site) )
+			$dn = $GLOBALS['ldap']->getDNfromUID($site);
 		else
-			$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, $subdomain);
+			$dn = ldap::buildDN(ldap::SUBDOMAIN, $GLOBALS['CONFIG']['DOMAIN'], $site);
 		
 		$result = $GLOBALS['ldap']->read($dn);
 	}
 	else if( $user !== null )
 	{
 		$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
-		$result = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $domain), ldap::buildFilter(ldap::SUBDOMAIN, "(owner={$user_dn})"));
+		$result = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $GLOBALS['CONFIG']['DOMAIN']), ldap::buildFilter(ldap::SUBDOMAIN, "(owner={$user_dn})"));
 	}
-	else if ( $domain !== null )
-		$result = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $domain), ldap::buildFilter(ldap::SUBDOMAIN));
 	else
 		$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::SUBDOMAIN));
 
 	// =================================
 	// FORMAT RESULT
 	// =================================
-	$subdomains = array();
-	if( $subdomain !== null )
+	$sites = array();
+	if( $site !== null )
 	{
 		if( is_array($result['owner']) )
 			$result['owner'] = $result['owner'][0];
 			
 		if( $user !== null && $GLOBALS['ldap']->getUIDfromDN($result['owner']) != $userdata['user_ldap'] )
-			throw new ApiException("Forbidden", 403, "User {$user} ({$userdata['user_ldap']}) does not match owner of the subdomain {$subdomain} ({$result['gidNumber']})");
+			throw new ApiException("Forbidden", 403, "User {$user} ({$userdata['user_ldap']}) does not match owner of the site {$site} ({$result['gidNumber']})");
 		
 		$sql = "SELECT user_id, user_name FROM users WHERE user_ldap = ".$GLOBALS['ldap']->getUIDfromDN($result['owner']);
 		$info = $GLOBALS['db']->query($sql);
@@ -110,7 +108,7 @@ $a->setExecute(function() use ($a)
 		$s['aRecord'] = $result['aRecord'];
 		$s['user'] = array('id'=>$info['user_id'], 'name'=>$info['user_name']);
 		
-		$subdomains[] = $s;
+		$sites[] = $s;
 	}
 	else
 	{
@@ -124,11 +122,11 @@ $a->setExecute(function() use ($a)
 			$s['aRecord'] = $r['aRecord'];
 			$s['user'] = array('id'=>'', 'name'=>'');
 			
-			$subdomains[] = $s;		
+			$sites[] = $s;		
 		}
 	}
 
-	responder::send($subdomains);
+	responder::send($sites);
 });
 
 return $a;

@@ -58,6 +58,13 @@ $a->setExecute(function() use ($a)
 		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 
 	// =================================
+	// CHECK QUOTA
+	// =================================
+	grantStore::add('QUOTA_USER_INTERNAL');
+	request::forward('/quota/user/internal');
+	checkQuota('SITES', $user);
+
+	// =================================
 	// GET REMOTE USER DN
 	// =================================	
 	$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
@@ -80,6 +87,7 @@ $a->setExecute(function() use ($a)
 			throw $e;
 	}
 
+
 	// =================================
 	// INSERT REMOTE SITE
 	// =================================
@@ -96,7 +104,20 @@ $a->setExecute(function() use ($a)
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
 	$GLOBALS['system']->create(system::SUBDOMAIN, $data);
+
+	// =================================
+	// INSERT PIWIK SITE
+	// =================================
+	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.addSite&siteName={$site}&urls=http://{$site}.{$GLOBALS['CONFIG']['DOMAIN']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+	$json = json_decode(@file_get_contents($url), true);
+	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=UsersManager.setUserAccess&userLogin={$userdata['user_name']}&access=admin&idSites={$json['value']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+	@file_get_contents($url);
 	
+	// =================================
+	// SYNC QUOTA
+	// =================================
+	syncQuota('SITES', $user);
+
 	responder::send(array("name"=>$site, "id"=>$result['uidNumber']));
 });
 

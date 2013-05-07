@@ -89,6 +89,21 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$GLOBALS['system']->delete(system::SUBDOMAIN, $result);
 	
+	// =================================
+	// DELETE PIWIK SITE
+	// =================================
+	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.getSitesIdFromSiteUrl&url=http://{$result['associatedDomain']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+	$json = json_decode(@file_get_contents($url), true);
+	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.deleteSite&idSite={$json[0]['idsite']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+	@file_get_contents($url);
+
+	// =================================
+	// SYNC QUOTA
+	// =================================
+	grantStore::add('QUOTA_USER_INTERNAL');
+	request::forward('/quota/user/internal');
+	syncQuota('SITES', $userdata['user_id']);
+
 	responder::send("OK");
 });
 
