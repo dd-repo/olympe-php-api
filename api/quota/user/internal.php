@@ -42,18 +42,20 @@ function syncQuota($type, $user)
 	{
 		case 'SITES':
 			$sql = "SELECT user_ldap FROM users u WHERE {$where}";
-			$result = $GLOBALS['db']->query($sql);
-			if( $result == null || $result['user_ldap'] == null )
+			$userdata = $GLOBALS['db']->query($sql);
+			if( $userdata == null || $userdata['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-			$result = asapi::send('/olympe.in/subdomains', 'GET', array('gidNumber' => $result['user_ldap']));
+			$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
+			$result = $GLOBALS['ldap']->search('dc=olympe,dc=in,dc=dns', ldap::buildFilter(ldap::SUBDOMAIN, "(owner={$user_dn})"));
 			$count = count($result);
 			break;
 		case 'DOMAINS':
 			$sql = "SELECT user_ldap FROM users u WHERE {$where}";
-			$result = $GLOBALS['db']->query($sql);
-			if( $result == null || $result['user_ldap'] == null )
+			$userdata = $GLOBALS['db']->query($sql);
+			if( $userdata == null || $userdata['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-			$result = asapi::send('/domains', 'GET', array('gidNumber' => $result['user_ldap']));
+			$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
+			$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::DOMAIN, "(owner={$user_dn})"));
 			$count = count($result);
 			break;
 		case 'DATABASES':
