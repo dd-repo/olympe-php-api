@@ -52,8 +52,8 @@ $i->addEntry('group', array('group', 'groups'));
 $i->addEntry('domain', array('domain', 'domains'));
 $i->addEntry('alias', array('alias', 'aliases'));
 $i->addEntry('subdomain', array('subdomain', 'subdomains'));
-$i->addEntry('service', array('service', 'services'));
-$i->addEntry('account', array('account', 'accounts'));
+$i->addEntry('site', array('site', 'sites'));
+$i->addEntry('database', array('database', 'databases'));
 
 return $i;
 
