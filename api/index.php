@@ -6,75 +6,7 @@ if( !defined('PROPER_START') )
 	exit;
 }
 
-$action = request::getAction();
-switch($action)
-{
-	case 'me':
-	case 'myself':
-	case 'self':
-		request::forward('/self/index'); break;
-	case 'user':
-	case 'users':
-		request::forward('/user/index'); break;
-	case 'group':
-	case 'groups':
-		request::forward('/group/index'); break;
-	case 'token':
-	case 'tokens':
-		request::forward('/token/index'); break;
-	case 'grant':
-	case 'grants':
-		request::forward('/grant/index'); break;
-	case 'quota':
-	case 'quotas':
-		request::forward('/quota/index'); break;
-	case 'site':
-	case 'sites':
-		request::forward('/site/index'); break;
-	case 'domain':
-	case 'domains':
-		request::forward('/domain/index'); break;
-	case 'subdomain':
-	case 'subdomains':
-		request::forward('/subdomain/index'); break;
-	case 'database':
-	case 'databases':
-		request::forward('/database/index'); break;
-	case 'account':
-	case 'accounts':
-		request::forward('/account/index'); break;
-	case 'app':
-	case 'apps':
-		request::forward('/app/index'); break;
-	case 'registration':
-	case 'registrations':
-		request::forward('/registration/index'); break;
-	case 'test':
-	case 'hello':
-		request::forward('/test'); break;
-	case 'help':
-	case 'doc':
-		$body = "
-<h1>API Help</h1>
-<ul>
-	<li><h2><a href=\"/grant/help\">grant</a></h2> (alias : grants)</li>
-	<li><h2><a href=\"/group/help\">group</a></h2> (alias : groups)</li>
-	<li><h2><a href=\"/user/help\">user</a></h2> (alias : users)</li>
-	<li><h2><a href=\"/self/help\">self</a></h2> (alias : me, myself)</li>
-	<li><h2><a href=\"/quota/help\">quota</a></h2> (alias : quotas)</li>
-	<li><h2><a href=\"/token/help\">token</a></h2> (alias : tokens)</li>
-	<li><h2><a href=\"/site/help\">site</a></h2> (alias : sites)</li>
-	<li><h2><a href=\"/domain/help\">domain</a></h2> (alias : domains)</li>
-	<li><h2><a href=\"/subdomain/help\">subdomain</a></h2> (alias : subdomains)</li>
-	<li><h2><a href=\"/database/help\">database</a></h2> (alias : databases)</li>
-	<li><h2><a href=\"/account/help\">account</a></h2> (alias : accounts)</li>
-	<li><h2><a href=\"/app/help\">app</a></h2> (alias : apps)</li>
-	<li><h2><a href=\"/registration/help\">registration</a></h2> (alias : registrations)</li>
-	<li><h2><a href=\"/test/help\">test</a></h2> (alias : hello)</li>
-</ul>";
-		$howto = "
-<hr />
-<h1>How to use the API</h1>
+$howto = "<h1>How to use the API</h1>
 <ul><li><h2>Introduction</h2> 
 	The API is a URL-HTTP-based simple interface to view information or act on the system.<br />
 	It all starts with an <em>action</em> you want to perform. For some actions, <em>parameters</em> may be necessary to provide more information about what you want to do.<br />
@@ -110,7 +42,7 @@ switch($action)
 </li><li><h2>Response</h2>
 	The response of the request will always be sent back. All actions have a response.<br />
 	Some responses are very basic but some other may produce complex lists of elements.<br />
-	Hence, for convenience, you may choose how the API will respond, using the output type parameter. Currently supported response types are : json, xml, php, dump.<br />
+	Hence, for convenience, you may choose how the API will respond, using the output type parameter. Currently supported response types are : json, xml, php, dump and html.<br />
 	If no output type is provided, json is assumed.<br />
 	Note that xml array values are not supported by the norm, hence tags named <em>item_X</em> (where X is the index of the element) will be used.
 </li><li><h2>Errors</h2>
@@ -144,10 +76,23 @@ switch($action)
 	Tokens also have a validity period (which may be set to be permanent) in order to allow access only in a particular time-frame period.<br />
 	With those tokens, you may truly choose who may access which features of your account.
 </li></ul>";
-		responder::help($body . $howto);
-		break;
-	default:
-		throw new ApiException("Unsupported operation", 501, "Undefined root-level action : " . $action);
-}
+
+$i = new index();
+$i->setDescription($howto);
+$i->addEntry('self', array('self', 'me', 'myself'));
+$i->addEntry('user', array('user', 'users'));
+$i->addEntry('group', array('group', 'groups'));
+$i->addEntry('token', array('token', 'tokens'));
+$i->addEntry('grant', array('grant', 'grants'));
+$i->addEntry('quota', array('quota', 'quotas'));
+$i->addEntry('registration', array('registration', 'registrations'));
+$i->addEntry('domain', array('domain', 'domains'));
+$i->addEntry('alias', array('alias', 'aliases'));
+$i->addEntry('subdomain', array('subdomain', 'subdomains'));
+$i->addEntry('account', array('account', 'accounts'));
+$i->addEntry('database', array('database', 'databases'));
+$i->addEntry('test', array('test', 'hello'));
+
+return $i;
 
 ?>

@@ -8,7 +8,7 @@ if( !defined('PROPER_START') )
 
 $a = new action();
 $a->addAlias(array('delete', 'del', 'remove', 'destroy'));
-$a->setDescription("Removes a domain");
+$a->setDescription("Removes an alias");
 $a->addGrant(array('ACCESS', 'DOMAIN_DELETE'));
 $a->setReturn("OK");
 

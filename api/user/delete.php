@@ -6,122 +6,122 @@ if( !defined('PROPER_START') )
 	exit;
 }
 
-$help = request::getAction(false, false);
-if( $help == 'help' || $help == 'doc' )
-{
-	$body = "
-<h1><a href=\"/help\">API Help</a> :: <a href=\"/user/help\">user</a> :: delete</h1>
-<ul>
-	<li><h2>Alias :</h2> del, remove, destroy</li>
-	<li><h2>Description :</h2> removes a user</li>
-	<li><h2>Parameters :</h2>
-		<ul>
-			<li>user : The name or id of the user to remove. <span class=\"required\">required</span>. <span class=\"urlizable\">urlizable</span>. (alias : name, user_name, username, login, id, user_id, uid)</li>
-			<li>recursive : [0 : no recursive (default) | 1 : recursive]. <span class=\"optional\">optional</span>.</li>
-		</ul>
-	</li>
-	<li><h2>Returns :</h2> OK</li>
-	<li><h2>Required grants :</h2> ACCESS, USER_DELETE</li>
-</ul>";
-	responder::help($body);
-}
-
-// =================================
-// CHECK AUTH
-// =================================
-security::requireGrants(array('ACCESS', 'USER_DELETE'));
-
-// =================================
-// GET PARAMETERS
-// =================================
-$user = request::getCheckParam(array(
-	'name'=>array('name', 'user_name', 'username', 'login', 'user', 'id', 'user_id', 'uid'),
+$a = new action();
+$a->addAlias(array('delete', 'del', 'remove', 'destroy'));
+$a->setDescription("Removes a user");
+$a->addGrant(array('ACCESS', 'USER_DELETE'));
+$a->setReturn("OK");
+$a->addParam(array(
+	'name'=>array('user', 'name', 'user_name', 'username', 'login', 'id', 'user_id', 'uid'),
+	'description'=>'The name or id of the user to delete.',
 	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>30,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	'action'=>true
 	));
-$recursive = request::getCheckParam(array(
-	'name'=>array('recursive'),
-	'optional'=>true,
-	'minlength'=>0,
-	'maxlength'=>1,
-	'match'=>request::NUMBER
-	));
-	
-// =================================
-// GET LOCAL USER INFO
-// =================================
-if( is_numeric($user) )
-	$where = "u.user_id=".$user;
-else
-	$where = "u.user_name = '".security::escape($user)."'";
 
-$sql = "SELECT u.user_id, u.user_name, u.user_ldap FROM users u WHERE {$where}";
-$result = $GLOBALS['db']->query($sql);
-if( $result == null || $result['user_id'] == null )
-	throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-
-// =================================
-// RECURSIVE
-// =================================
-if( $recursive == 1 )
+$a->setExecute(function() use ($a)
 {
 	// =================================
-	// DATABASES
+	// CHECK AUTH
 	// =================================
-	$sql = "SELECT database_name, database_type FROM `databases` WHERE database_user = {$result['user_id']}";
-	$databases = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+	$a->checkAuth();
 
-	foreach( $databases as $d )
+	// =================================
+	// GET PARAMETERS
+	// =================================
+	$user = $a->getParam('user');
+	
+	// =================================
+	// GET LOCAL USER INFO
+	// =================================
+	if( is_numeric($user) )
+		$where = "u.user_id=".$user;
+	else
+		$where = "u.user_name = '".security::escape($user)."'";
+
+	$sql = "SELECT u.user_id, u.user_name, u.user_ldap FROM users u WHERE {$where}";
+	$result = $GLOBALS['db']->query($sql);
+	
+	if( $result == null || $result['user_id'] == null )
+		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+
+	// =================================
+	// GET USER INFO
+	// =================================	
+	$dn = ldap::buildDN(ldap::USER, $GLOBALS['CONFIG']['DOMAIN'], $result['user_name']);
+	$data = $GLOBALS['ldap']->read($dn);
+	
+	if( $dn )
 	{
-		$params = array('type' => $d['database_type']);
-		asapi::send('/databases/'.$d['database_name'], 'DELETE', $params);
+		// =================================
+		// APPS
+		// =================================
+		$option = "(owner={$dn})";
+		$apps = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::APP, $option));
+	
+		foreach( $apps as $a )
+		{
+			if( $a['dn'] ) 
+			{
+				$GLOBALS['ldap']->delete($a['dn']);
+				$GLOBALS['system']->delete(system::APP, $a);
+			}
+		}
 		
-		$sql = "DELETE FROM `databases` WHERE database_name = '{$d['database_name']}'";
-		$GLOBALS['db']->query($sql, mysql::NO_ROW);
-	}
-
-	// =================================
-	// DOMAINS
-	// =================================
-	$params = array('gidNumber' => $result['user_ldap']);
-	$domains = asapi::send('/domains', 'GET', $params);
+		// =================================
+		// DOMAINS
+		// =================================
+		$option = "(owner={$dn})";
+		$domains = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::DOMAIN, $option));
 	
-	foreach( $domains as $d )
-	{
-		asapi::send('/domains/'.$d['associatedDomain'], 'DELETE');
+		foreach( $domains as $d )
+		{
+			if( $d['dn'] ) 
+			{
+				$GLOBALS['ldap']->delete($d['dn']);
+				$GLOBALS['system']->delete(system::DOMAIN, $d);
+			}
+		}
+		
+		// =================================
+		// DELETE REMOTE USER
+		// =================================
+		$GLOBALS['ldap']->delete($dn);
 	}
 	
 	// =================================
-	// SITES
+	// DELETE LOCAL USER
 	// =================================
-	$params['gidNumber'] = $result['user_ldap'];
-	$sites = asapi::send('/'.$GLOBALS['CONFIG']['DOMAIN'].'/subdomains', 'GET', $params);
-	foreach( $sites as $s )
-	{
-		asapi::send('/'.$GLOBALS['CONFIG']['DOMAIN'].'/subdomains/'.$s['uid'], 'DELETE');
-	}
-}
+	$sql = "DELETE FROM users WHERE user_id={$result['user_id']}";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
+
+	// =================================
+	// DELETE PIWIK USER
+	// =================================
+	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=UsersManager.deleteUser&userLogin={$result['user_name']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+	@file_get_contents($url);
+
+	// =================================
+	// GET CF TOKEN
+	// =================================
+	$params = array('password' => $GLOBALS['CONFIG']['CF_PASSWORD']);
+	$token = cf::send('users/' . $GLOBALS['CONFIG']['CF_USERNAME'] . '/tokens', 'POST', $params);
 	
-// =================================
-// DELETE REMOTE USER
-// =================================
-asapi::send('/'.$GLOBALS['CONFIG']['DOMAIN'].'/users/'.$result['user_name'], 'DELETE');
+	// =================================
+	// DELETE CLOUDFOUNDRY USER
+	// =================================
+	cf::send('users/' . $data['mail'], 'DELETE', array(), $token['token']);
 
-// =================================
-// DELETE LOCAL USER
-// =================================
-$sql = "DELETE FROM users WHERE user_id={$result['user_id']}";
-$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	// =================================
+	// POST-DELETE SYSTEM ACTIONS
+	// =================================
+	$GLOBALS['system']->delete(system::USER, $data);
+	
+	responder::send("OK");
+});
 
-// =================================
-// DELETE PIWIK USER
-// =================================
-$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=UsersManager.deleteUser&userLogin={$user}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
-@file_get_contents($url);
-
-responder::send("OK");
+return $a;
 
 ?>

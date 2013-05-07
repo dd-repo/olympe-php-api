@@ -1,4 +1,4 @@
-sys-api
+olympe-api
 =======
 
-SYS Management API
+Olympe Management API

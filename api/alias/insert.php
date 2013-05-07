@@ -8,7 +8,7 @@ if( !defined('PROPER_START') )
 
 $a = new action();
 $a->addAlias(array('create', 'add'));
-$a->setDescription("Creates a new domain");
+$a->setDescription("Creates a new alias");
 $a->addGrant(array('ACCESS', 'DOMAIN_INSERT'));
 $a->setReturn(array(array(
 	'id'=>'the id of the domain', 
@@ -21,6 +21,24 @@ $a->addParam(array(
 	'minlength'=>2,
 	'maxlength'=>200,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	'action'=>true
+	));
+$a->addParam(array(
+	'name'=>array('source', 'source_name', 'source_id', 'id'),
+	'description'=>'The name of the new domain.',
+	'optional'=>false,
+	'minlength'=>2,
+	'maxlength'=>200,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	'action'=>true
+	));
+$a->addParam(array(
+	'name'=>array('type'),
+	'description'=>'Type of alias.',
+	'optional'=>false,
+	'minlength'=>2,
+	'maxlength'=>15,
+	'match'=>"(transparent|permanent)",
 	'action'=>true
 	));
 $a->addParam(array(
@@ -43,6 +61,8 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$domain = $a->getParam('domain');
+	$source = $a->getParam('source');
+	$type = $a->getParam('type');
 	$user = $a->getParam('user');
 	
 	if( is_numeric($domain) )
@@ -60,7 +80,17 @@ $a->setExecute(function() use ($a)
 	// GET REMOTE USER DN
 	// =================================	
 	$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
-	
+
+	// =================================
+	// SELECT REMOTE SOURCE
+	// =================================
+	if( is_numeric($source) )
+		$dn = $GLOBALS['ldap']->getDNfromUID($source);
+	else
+		$dn = ldap::buildDN(ldap::DOMAIN, $source);
+		
+	$source_data = $GLOBALS['ldap']->read($dn);
+		
 	// =================================
 	// CHECK QUOTA
 	// =================================
@@ -92,13 +122,12 @@ $a->setExecute(function() use ($a)
 	$dn = ldap::buildDN(ldap::DOMAIN, $domain);
 	$split = explode('.', $domain);
 	$name = $split[0];
-	$params = array('dn' => $dn, 'uid' => $name, 'domain' => $domain, 'owner' => $user_dn);
+	$params = array('dn' => $dn, 'uid' => $name, 'domain' => $domain, 'type'=>$type, 'source' => $source_data['associatedDomain'], 'owner' => $user_dn);
 	
-	$handler = new domain();
+	$handler = new alias();
 	$data = $handler->build($params);
 	
 	$GLOBALS['ldap']->create($dn, $data);
-
 		
 	// =================================
 	// SYNC QUOTA
@@ -108,47 +137,20 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$GLOBALS['system']->create(system::DOMAIN, $data);
-	
-	// =================================
-	// INSERT REMOTE CONTAINERS
-	// =================================
-	$data_users = array('ou' => 'Users', 'objectClass' => array('top', 'organizationalUnit'));
-	$data_groups = array('ou' => 'Groups', 'objectClass' => array('top', 'organizationalUnit'));
-	$data_apps = array('ou' => 'Apps', 'objectClass' => array('top', 'organizationalUnit'));
-	$data_repos = array('ou' => 'Repos', 'objectClass' => array('top', 'organizationalUnit'));
-	$data_people = array('ou' => 'People', 'objectClass' => array('top', 'organizationalUnit'));
-	$GLOBALS['ldap']->create('ou=Users,' . $dn, $data_users);
-	$GLOBALS['ldap']->create('ou=Groups,' . $dn, $data_groups);
-	$GLOBALS['ldap']->create('ou=Apps,' . $dn, $data_groups);
-	$GLOBALS['ldap']->create('ou=Repos,' . $dn, $data_repos);
-	$GLOBALS['ldap']->create('ou=People,' . $dn, $data_people);
+	$data['source'] = $source_data;
+	$data['type'] = $type;
+	$GLOBALS['system']->create(system::ALIAS, $data);
 
 	// =================================
 	// INSERT DEFAULT SUBDOMAINS
 	// =================================
-	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, 'www');
-	$params = array('dn' => $dn, 'subdomain' => 'www', 'uid' => 'www', 'domain' => $domain, 'owner' => $user_dn);
-	$handler = new subdomain();
-	$data = $handler->build($params);
-	$GLOBALS['ldap']->create($dn, $data);
-	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, 'mail');
-	$params = array('dn' => $dn, 'subdomain' => 'mail', 'uid' => 'mail', 'domain' => $domain, 'owner' => $user_dn);
-	$handler = new subdomain();
-	$data = $handler->build($params);
-	$GLOBALS['ldap']->create($dn, $data);
-	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, 'admin');
-	$params = array('dn' => $dn, 'subdomain' => 'admin', 'uid' => 'admin', 'domain' => $domain, 'owner' => $user_dn);
-	$handler = new subdomain();
-	$data = $handler->build($params);
-	$GLOBALS['ldap']->create($dn, $data);
-	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, 'stats');
-	$params = array('dn' => $dn, 'subdomain' => 'stats', 'uid' => 'stats', 'domain' => $domain, 'owner' => $user_dn);
+	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, '*');
+	$params = array('dn' => $dn, 'subdomain' => '*', 'uid' => '*', 'domain' => $domain, 'owner' => $user_dn);
 	$handler = new subdomain();
 	$data = $handler->build($params);
 	$GLOBALS['ldap']->create($dn, $data);
 	
-	responder::send(array("domain"=>$domain, "id"=>$result['uidNumber']));
+	responder::send(array("domain"=>$domain, "id"=>$data['uidNumber']));
 });
 
 return $a;

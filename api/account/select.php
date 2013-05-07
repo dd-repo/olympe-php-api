@@ -140,8 +140,8 @@ $a->setExecute(function() use ($a)
 		$sql = "SELECT user_id, user_name FROM users WHERE user_ldap = ".$GLOBALS['ldap']->getUIDfromDN($result['owner']);
 		$info = $GLOBALS['db']->query($sql);
 
-		$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$result['homeDirectory']}'";
-		$storage = $GLOBALS['db']->query($sql);
+		//$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$result['homeDirectory']}'";
+		//$storage = $GLOBALS['db']->query($sql);
 		
 		$ac['name'] = $result['uid'];
 		$ac['id'] = $result['uidNumber'];
@@ -189,8 +189,8 @@ $a->setExecute(function() use ($a)
 		
 		foreach( $result as $r )
 		{
-			$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
-			$storage = $GLOBALS['db']->query($sql);
+			//$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
+			//$storage = $GLOBALS['db']->query($sql);
 			
 			$ac['name'] = $r['uid'];
 			$ac['id'] = $r['uidNumber'];

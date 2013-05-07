@@ -6,88 +6,101 @@ if( !defined('PROPER_START') )
 	exit;
 }
 
-$help = request::getAction(false, false);
-if( $help == 'help' || $help == 'doc' )
-{
-	$body = "
-<h1><a href=\"/help\">API Help</a> :: <a href=\"/subdomain/help\">subdomain</a> :: delete</h1>
-<ul>
-	<li><h2>Alias :</h2> del, remove, destroy</li>
-	<li><h2>Description :</h2> removes a subdomain</li>
-	<li><h2>Parameters :</h2>
-		<ul>
-			<li>subdomain : The name or id of the subdomain to remove. <span class=\"required\">required</span>. <span class=\"urlizable\">urlizable</span>. (alias : name, id, subdomain_id, uid)</li>
-			<li>domain : The name of the domain that subdomains belong to. <span class=\"required\">required</span>. (alias : domain_name)</li>
-			<li>user : The name or id of the target user. <span class=\"optional\">optional</span>. (alias : user_name, username, login, user_id, uid)</li>
-		</ul>
-	</li>
-	<li><h2>Returns :</h2> OK</li>
-	<li><h2>Required grants :</h2> ACCESS, SUBDOMAIN_DELETE</li>
-</ul>";
-	responder::help($body);
-}
+$a = new action();
+$a->addAlias(array('del', 'remove', 'destroy'));
+$a->setDescription("Removes a subdomain");
+$a->addGrant(array('ACCESS', 'SUBDOMAIN_DELETE'));
+$a->setReturn("OK");
 
-// =================================
-// CHECK AUTH
-// =================================
-security::requireGrants(array('ACCESS', 'SUBDOMAIN_DELETE'));
-
-// =================================
-// GET PARAMETERS
-// =================================
-$subdomain = request::getCheckParam(array(
-	'name'=>array('subdomain', 'subdomain_id', 'id', 'uid'),
+$a->addParam(array(
+	'name'=>array('subdomain', 'name', 'id', 'subdomain_id'),
+	'description'=>'The name or id of the subdomain to remove.',
 	'optional'=>false,
-	'minlength'=>1,
+	'minlength'=>2,
 	'maxlength'=>50,
-	'match'=>"[a-z0-9_\\-]{2,50}"
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	'action'=>true
 	));
-$domain = request::getCheckParam(array(
+$a->addParam(array(
 	'name'=>array('domain', 'domain_name'),
+	'description'=>'The name of the domain that subdomains belong to.',
 	'optional'=>false,
 	'minlength'=>2,
 	'maxlength'=>200,
-	'match'=>"[a-z0-9_\-]{1,200}(\.[a-z0-9_\-]{1,5}){1,4}|[0-9]+",
-	'action'=>true
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));
-$user = request::getCheckParam(array(
-	'name'=>array('user_name', 'username', 'login', 'user', 'user_id', 'uid'),
+$a->addParam(array(
+	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
+	'description'=>'The name or id of the target user.',
 	'optional'=>true,
-	'minlength'=>1,
+	'minlength'=>0,
 	'maxlength'=>30,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	'action'=>false
 	));
 
-// =================================
-// CHECK OWNER
-// =================================
-if( $user !== null )
+$a->setExecute(function() use ($a)
 {
-	$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
-	$userdata = $GLOBALS['db']->query($sql);
-	if( $userdata == null || $userdata['user_ldap'] == null )
-		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+	// =================================
+	// CHECK AUTH
+	// =================================
+	$a->checkAuth();
 
+	// =================================
+	// GET PARAMETERS
+	// =================================
+	$subdomain = $a->getParam('subdomain');
+	$domain = $a->getParam('domain');
+	$user = $a->getParam('user');
+
+	// =================================
+	// GET REMOTE INFO
+	// =================================
 	if( is_numeric($subdomain) )
-		$result = asapi::send('/'.$domain.'/subdomains', 'GET', array('uidNumber'=>$subdomain));
+		$dn = $GLOBALS['ldap']->getDNfromUID($subdomain);
 	else
-		$result = asapi::send('/'.$domain.'/subdomains/'.$subdomain, 'GET');
+		$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, $subdomain);
+	
+	$result = $GLOBALS['ldap']->read($dn);
 		
-	if( $result['gidNumber'] != $userdata['user_ldap'] )
-		throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the subdomain {$subdomain}");
-}
+	if( $result == null || $result['uidNumber'] == null )
+		throw new ApiException("Unknown subdomain", 412, "Unknown subdomain : {$subdomain}");
+	
+	// =================================
+	// CHECK OWNER
+	// =================================
+	if( $user !== null )
+	{
+		$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$userdata = $GLOBALS['db']->query($sql);
+		if( $userdata == null || $userdata['user_ldap'] == null )
+			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 
-// =================================
-// DELETE REMOTE SUBDOMAIN
-// =================================
-if( is_numeric($subdomain) )
-{
-	$params = array('uidNumber' => $subdomain);
-	asapi::send('/'.$domain.'/subdomains/', 'DELETE', $params);
-}
-else
-	asapi::send('/'.$domain.'/subdomains/'.$subdomain, 'DELETE');
+		// =================================
+		// GET REMOTE USER DN
+		// =================================	
+		$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
 
-responder::send("OK");
+		if( is_array($result['owner']) )
+			$result['owner'] = $result['owner'][0];
+			
+		if( $result['owner'] != $user_dn )
+			throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the subdomain {$subdomain}");
+	}
+
+	// =================================
+	// DELETE REMOTE SUBDOMAIN
+	// =================================
+	$GLOBALS['ldap']->delete($dn);
+
+	// =================================
+	// POST-DELETE SYSTEM ACTIONS
+	// =================================
+	$GLOBALS['system']->delete(system::SUBDOMAIN, $result);
+	
+	responder::send("OK");
+});
+
+return $a;
 
 ?>

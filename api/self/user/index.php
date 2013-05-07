@@ -9,19 +9,11 @@ if( !defined('PROPER_START') )
 $action = request::getAction();
 switch($action)
 {
-	case 'create':
-	case 'add':
-	case 'insert':
-		security::requireGrants(array('ACCESS', 'SELF_USER_INSERT'));
-		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
-		request::addParam('user', security::getUser());
-		grantStore::add('USER_INSERT');
-		request::forward('/user/insert'); break;
 	case 'list':
 	case 'view':
 	case 'select':
 	case 'search':
-		security::requireGrants(array('ACCESS', 'SELF_USER_SELECT'));
+		security::requireGrants(array('ACCESS', 'SELF_SELECT'));
 		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
 		request::addParam('user', security::getUser());
 		grantStore::add('USER_SELECT');
@@ -29,7 +21,7 @@ switch($action)
 	case 'update':
 	case 'modify':
 	case 'change':
-		security::requireGrants(array('ACCESS', 'SELF_USER_UPDATE'));
+		security::requireGrants(array('ACCESS', 'SELF_UPDATE'));
 		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
 		request::addParam('user', security::getUser());
 		grantStore::add('USER_UPDATE');
@@ -38,7 +30,7 @@ switch($action)
 	case 'del':
 	case 'remove':
 	case 'destroy':
-		security::requireGrants(array('ACCESS', 'SELF_USER_DELETE'));
+		security::requireGrants(array('ACCESS', 'SELF_DELETE'));
 		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
 		request::addParam('user', security::getUser());
 		grantStore::add('USER_DELETE');
