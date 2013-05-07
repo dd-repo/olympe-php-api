@@ -1,13 +1,16 @@
---- 
-applications: 
-  .: 
+---
+applications:
+  .:
     mem: 128M
+    services:
     instances: 1
-    name: php-0Rd1qOho
-    url: api.olympe.in
-    framework: 
-      info: 
+    name: php-EihJyzzq
+    url: php-EihJyzzq.anotherservice.net
+    runtime: php
+    command: bin/startup.sh
+    framework:
+      info:
         mem: 128M
-        exec: 
-        description: PHP Application
+        exec:
+        description: php
       name: php
