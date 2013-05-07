@@ -54,38 +54,6 @@ $a->addParam(array(
 	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
 	));
 $a->addParam(array(
-	'name'=>array('plan'),
-	'description'=>'The user plan.',
-	'optional'=>true,
-	'minlength'=>0,
-	'maxlength'=>50,
-	'match'=>request::NUMBER
-	));
-$a->addParam(array(
-	'name'=>array('plan_type'),
-	'description'=>'The user plan type (storage || memory).',
-	'optional'=>true,
-	'minlength'=>0,
-	'maxlength'=>50,
-	'match'=>request::LOWER
-	));
-$a->addParam(array(
-	'name'=>array('iban'),
-	'description'=>'The user plan.',
-	'optional'=>true,
-	'minlength'=>10,
-	'maxlength'=>150,
-	'match'=>request::LOWER|request::UPPER|request::NUMBER
-	));
-$a->addParam(array(
-	'name'=>array('bic'),
-	'description'=>'The user BIC.',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>50,
-	'match'=>request::LOWER|request::UPPER|request::NUMBER
-	));
-$a->addParam(array(
 	'name'=>array('address', 'postal', 'postal_address', 'user_address'),
 	'description'=>'The postal address of the user (JSON encoded).',
 	'optional'=>true,
@@ -117,10 +85,6 @@ $a->setExecute(function() use ($a)
 	$firstname = $a->getParam('firstname');
 	$lastname = $a->getParam('lastname');
 	$mail = $a->getParam('mail');
-	$plan = $a->getParam('plan');
-	$plan_type = $a->getParam('plan_type');
-	$iban = $a->getParam('iban');
-	$bic = $a->getParam('bic');
 	$address = $a->getParam('address');
 	$status = $a->getParam('status');
 	
@@ -139,19 +103,10 @@ $a->setExecute(function() use ($a)
 	else
 		$where = "u.user_name = '".security::escape($user)."'";
 
-	$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_cf_token FROM users u WHERE {$where}";
+	$sql = "SELECT u.user_id, u.user_name, u.user_ldap FROM users u WHERE {$where}";
 	$result = $GLOBALS['db']->query($sql);
 	if( $result == null || $result['user_id'] == null )
 		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-
-	// =================================
-	// GET PLAN INFO
-	// =================================		
-	$sql = "SELECT up.plan_id, up.plan_start_date 
-			FROM user_plan up
-			LEFT JOIN plans p ON(p.plan_id = up.plan_id)
-			WHERE up.user_id = {$result['user_id']} AND p.plan_type = '{$plan_type}' ORDER BY up.plan_start_date DESC";
-	$plan_info = $GLOBALS['db']->query($sql);
 	
 	// =================================
 	// GET REMOTE USER INFO
@@ -167,46 +122,8 @@ $a->setExecute(function() use ($a)
 	else
 		$last = 'user_last';
 		
-	$sql = "UPDATE users SET user_iban = ".($iban?"'{$iban}'":"user_iban").", user_bic = ".($bic?"'{$bic}'":"user_bic").", user_status = {$status}, user_last = {$last} WHERE user_id = {$result['user_id']}";
+	$sql = "UPDATE users SET user_status = {$status}, user_last = {$last} WHERE user_id = {$result['user_id']}";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
-	
-	// =================================
-	// UPDATE PLAN
-	// =================================	
-	if( $plan !== null && $plan != $plan_info['plan_id'] )
-	{
-		if( $plan_info['plan_id'] )
-		{
-			$sql = "UPDATE user_plan SET plan_end_date = ".time()." WHERE plan_id = {$plan_info['plan_id']} AND user_id = {$result['user_id']} AND plan_start_date = {$plan_info['plan_start_date']}";
-			$GLOBALS['db']->query($sql, mysql::NO_ROW);
-		}
-		
-		// Hardcoded conditions
-		// end storage plans if memory plan includes enough disk space
-		if( $plan_type == 'memory' )
-		{
-			// plans 3 and 4, plan 8 is included
-			if( $plan == 3 || $plan == 4 )
-			{
-				$sql = "UPDATE user_plan SET plan_end_date = ".time()." WHERE plan_id = 8 AND user_id = {$result['user_id']}";
-				$GLOBALS['db']->query($sql, mysql::NO_ROW);
-			}
-			// plans 5 and 6, plan 8 and 9 are included
-			elseif( $plan == 5 || $plan == 6 )
-			{
-				$sql = "UPDATE user_plan SET plan_end_date = ".time()." WHERE plan_id = 8 AND user_id = {$result['user_id']}";
-				$GLOBALS['db']->query($sql, mysql::NO_ROW);
-				$sql = "UPDATE user_plan SET plan_end_date = ".time()." WHERE plan_id = 9 AND user_id = {$result['user_id']}";
-				$GLOBALS['db']->query($sql, mysql::NO_ROW);
-			}
-		}
-		
-		if( $plan != 99 )
-		{
-			$sql = "INSERT INTO user_plan (plan_id, user_id, plan_start_date, plan_end_date) VALUES ({$plan}, {$result['user_id']}, ".time().", 0)";
-			$GLOBALS['db']->query($sql, mysql::NO_ROW);	
-		}
-	}
 	
 	// =================================
 	// UPDATE REMOTE USER
@@ -235,12 +152,6 @@ $a->setExecute(function() use ($a)
 			// =================================
 			$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=UsersManager.updateUser&userLogin={$result['user_name']}&password={$pass}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
 			@file_get_contents($url);
-
-			// =================================
-			// UPDATE CLOUDFOUNDRY USER
-			// =================================
-			$row = array('email'=> $data['mail'], 'password'=>$pass);
-			cf::send('users/' . $data['mail'], 'PUT', $row, $result['user_cf_token']);
 		}
 	}
 	catch(Exception $e)

@@ -56,17 +56,17 @@ $a->setExecute(function() use ($a)
 	if( $dn )
 	{
 		// =================================
-		// APPS
+		// SITES
 		// =================================
 		$option = "(owner={$dn})";
-		$apps = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::APP, $option));
+		$sites = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::SUBDOMAIN, $option));
 	
-		foreach( $apps as $a )
+		foreach( $sites as $s )
 		{
-			if( $a['dn'] ) 
+			if( $s['dn'] ) 
 			{
-				$GLOBALS['ldap']->delete($a['dn']);
-				$GLOBALS['system']->delete(system::APP, $a);
+				$GLOBALS['ldap']->delete($s['dn']);
+				$GLOBALS['system']->delete(system::SUBDOMAIN, $s);
 			}
 		}
 		
@@ -102,17 +102,6 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=UsersManager.deleteUser&userLogin={$result['user_name']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
 	@file_get_contents($url);
-
-	// =================================
-	// GET CF TOKEN
-	// =================================
-	$params = array('password' => $GLOBALS['CONFIG']['CF_PASSWORD']);
-	$token = cf::send('users/' . $GLOBALS['CONFIG']['CF_USERNAME'] . '/tokens', 'POST', $params);
-	
-	// =================================
-	// DELETE CLOUDFOUNDRY USER
-	// =================================
-	cf::send('users/' . $data['mail'], 'DELETE', array(), $token['token']);
 
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
