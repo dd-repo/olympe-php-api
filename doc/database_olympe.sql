@@ -26,12 +26,3 @@ CREATE TABLE register (
 	UNIQUE (register_user),
 	UNIQUE (register_email)
 ) ENGINE=INNODB;
-
-CREATE TABLE `databases` (
-	database_name VARCHAR(30) CHARSET UTF8 NOT NULL,
-	database_user INT(11) UNSIGNED NOT NULL,
-	database_type TINYTEXT CHARSET UTF8 NOT NULL,
-	database_desc TEXT CHARSET UTF8 NOT NULL,
-	PRIMARY KEY (database_name),
-	FOREIGN KEY (database_user) REFERENCES users (user_id) ON DELETE CASCADE
-) ENGINE=INNODB;

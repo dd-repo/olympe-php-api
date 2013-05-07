@@ -6,131 +6,156 @@ if( !defined('PROPER_START') )
 	exit;
 }
 
-$help = request::getAction(false, false);
-if( $help == 'help' || $help == 'doc' )
-{
-	$body = "
-<h1><a href=\"/help\">API Help</a> :: <a href=\"/account/help\">account</a> :: insert</h1>
-<ul>
-	<li><h2>Alias :</h2> create, add</li>
-	<li><h2>Description :</h2> creates a new account</li>
-	<li><h2>Parameters :</h2>
-		<ul>
-			<li>account : The name of the new account. <span class=\"required\">required</span>. <span class=\"urlizable\">urlizable</span>. (alias : name, account_name)</li>
-			<li>domain : The name of the domain that subdomains belong to. <span class=\"required\">required</span>. (alias : domain_name)</li>
-			<li>pass : The password of the account. <span class=\"required\">required</span>. (alias : password, account_pass, account_password)</li>
-			<li>user : The name or id of the target user. <span class=\"required\">required</span>. (alias : user_name, username, login, user_id, uid)</li>
-			<li>firstname : The first name of the account. <span class=\"optional\">optional</span>. (alias : givenname, first_name, account_firstname, account_givenname, account_first_name, account_given_name)</li>
-			<li>lastname : The last name of the account. <span class=\"optional\">optional</span>. (alias : sn, account_lastname, account_sn, account_last_name)</li>
-			<li>redirection : The redirection email of the account. <span class=\"optional\">optional</span>. (alias : mail, redirect, account_redirect)</li>
-		</ul>
-	</li>
-	<li><h2>Returns :</h2> the newly created account {'name', 'id'}</li>
-	<li><h2>Required grants :</h2> ACCESS, ACCOUNT_INSERT</li>
-</ul>";
-	responder::help($body);
-}
-
-// =================================
-// CHECK AUTH
-// =================================
-security::requireGrants(array('ACCESS', 'ACCOUNT_INSERT'));
-
-// =================================
-// GET PARAMETERS
-// =================================
-$account = request::getCheckParam(array(
-	'name'=>array('name', 'account_name', 'account'),
+$a = new action();
+$a->addAlias(array('create', 'add'));
+$a->setDescription("Creates a new account");
+$a->addGrant(array('ACCESS', 'ACCOUNT_INSERT'));
+$a->setReturn(array(array(
+	'name'=>'the account name'
+	)));
+$a->addParam(array(
+	'name'=>array('name', 'account', 'account_name'),
+	'description'=>'The name of the new account.',
 	'optional'=>false,
-	'minlength'=>3,
-	'maxlength'=>100,
+	'minlength'=>1,
+	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	'action'=>true
 	));
-$domain = request::getCheckParam(array(
+$a->addParam(array(
 	'name'=>array('domain', 'domain_name'),
+	'description'=>'The name of the domain that account belong to.',
 	'optional'=>false,
 	'minlength'=>2,
 	'maxlength'=>200,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
-$pass = request::getCheckParam(array(
-	'name'=>array('pass', 'password', 'account_password', 'account_pass'),
+$a->addParam(array(
+	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
+	'description'=>'The name or id of the target user.',
+	'optional'=>false,
+	'minlength'=>0,
+	'maxlength'=>30,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	));	
+$a->addParam(array(
+	'name'=>array('pass', 'password'),
+	'description'=>'The password of the account.',
 	'optional'=>false,
 	'minlength'=>3,
-	'maxlength'=>30,
-	'match'=>request::PHRASE|request::SPECIAL
+	'maxlength'=>50,
+	'match'=>request::PHRASE|request::SPECIAL,
+	'action'=>true
 	));
-$user = request::getCheckParam(array(
-	'name'=>array('user_name', 'username', 'login', 'user', 'user_id', 'uid'),
-	'optional'=>false,
-	'minlength'=>1,
-	'maxlength'=>30,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT
-	));
-$firstname = request::getCheckParam(array(
-	'name'=>array('firstname', 'givenname', 'first_name', 'account_firstname', 'account_givenname', 'account_first_name', 'account_given_name'),
+$a->addParam(array(
+	'name'=>array('firstname', 'givenname', 'first_name'),
+	'description'=>'The first name of the new account.',
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>50,
 	'match'=>request::PHRASE
 	));
-$lastname = request::getCheckParam(array(
-	'name'=>array('lastname', 'sn', 'account_lastname', 'account_sn', 'account_last_name'),
+$a->addParam(array(
+	'name'=>array('lastname', 'sn', 'user_lastname'),
+	'description'=>'The last name of the account.',
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>50,
 	'match'=>request::PHRASE
 	));
-$redirection = request::getCheckParam(array(
-	'name'=>array('redirection', 'mail', 'redirect', 'account_redirect'),
+$a->addParam(array(
+	'name'=>array('redirection', 'email'),
+	'description'=>'The email address for mail redirection.',
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>150,
 	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
 	));
 
-if( is_numeric($account) )
-	throw new ApiException("Parameter validation failed", 412, "Parameter account may not be numeric : " . $account);
-
-// =================================
-// CHECK IF REMOTE ACCOUNT EXISTS
-// =================================
-try
+$a->setExecute(function() use ($a)
 {
-	$result = asapi::send('/'.$domain.'/users/'.$account);
-	// this should throw a 404 if the user does NOT exist
-	throw new ApiException("Account already exists", 412, "Existing remote account : " . $account);
-}
-catch(Exception $e)
-{
-	// if this is not the 404 we expect, rethrow it
-	if( !($e instanceof ApiException) || !preg_match("/404 Not Found/s", $e.'') )
-		throw $e;
-}
+	// =================================
+	// CHECK AUTH
+	// =================================
+	$a->checkAuth();
 
-// =================================
-// GET USER DATA
-// =================================
-$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
-$userdata = $GLOBALS['db']->query($sql);
-if( $userdata == null || $userdata['user_ldap'] == null )
-	throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+	// =================================
+	// GET PARAMETERS
+	// =================================
+	$account = $a->getParam('account');
+	$domain = $a->getParam('domain');
+	$pass = $a->getParam('pass');
+	$user = $a->getParam('user');
+	$firstname = $a->getParam('firstname');
+	$lastname = $a->getParam('lastname');
+	$redirection = $a->getParam('redirection');
+	
+	if( is_numeric($account) )
+		throw new ApiException("Parameter validation failed", 412, "Parameter account may not be numeric : " . $account);
 
-// =================================
-// INSERT REMOTE ACCOUNT
-// =================================
-$params = array('user'=>$account, 'gidNumber'=>$userdata['user_ldap'], 'userPassword'=>base64_encode($pass));
-if( $firstname !== null )
-	$params['givenName'] = $firstname;
-if( $lastname !== null )
-	$params['sn'] = $lastname;
-if( $mail !== null )
-	$params['mailForwardingAddress'] = $redirection;
-$result = asapi::send('/'.$domain.'/users', 'POST', $params);
-if( !isset($result['uidNumber']) || !is_numeric($result['uidNumber']) )
-	throw new ApiException("Unexpected response from upstream API", 500, "Unexpected API response : ".print_r($result, true));
+	// =================================
+	// GET USER DATA
+	// =================================
+	$sql = "SELECT user_ldap, user_name, user_cf_token FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+	$userdata = $GLOBALS['db']->query($sql);
+	if( $userdata == null || $userdata['user_ldap'] == null )
+		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+		
+	// =================================
+	// GET REMOTE USER DN
+	// =================================	
+	$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
 
-responder::send(array("name"=>$account, "id"=>$result['uidNumber']));
+	// =================================
+	// CHECK IF REMOTE ACCOUNT EXISTS
+	// =================================
+	try
+	{
+		$dn = ldap::buildDN(ldap::USER, $domain, $account);
+		$result = $GLOBALS['ldap']->read($dn);
+		
+		// this should throw a 404 if the user does NOT exist
+		throw new ApiException("Account already exists", 412, "Existing remote account : " . $account);
+	}
+	catch(Exception $e)
+	{
+		// if this is not the 404 we expect, rethrow it
+		if( !($e instanceof ApiException) || !preg_match("/Entry not found/s", $e.'') )
+			throw $e;
+	}
+
+	// =================================
+	// INSERT REMOTE ACCOUNT
+	// =================================
+	$dn = ldap::buildDN(ldap::USER, $domain, $account);
+	$params = array('dn' => $dn, 'uid' => $account, 'userPassword' => $pass, 'domain' => $domain, 'owner'=>$user_dn);
+	
+	if( $firstname !== null )
+		$params['givenName'] = $firstname;
+	if( $lastname !== null )
+		$params['sn'] = $lastname;
+	if( $redirection !== null )
+		$params['mailForwardingAddress'] = $redirection;
+	
+	$handler = new user();
+	$data = $handler->build($params);
+	
+	$result = $GLOBALS['ldap']->create($dn, $data);
+
+	// =================================
+	// UPDATE REMOTE USER
+	// =================================
+	$mod['member'] = $dn;
+	$GLOBALS['ldap']->replace($user_dn, $mod, ldap::ADD);
+	
+	// =================================
+	// POST-CREATE SYSTEM ACTIONS
+	// =================================
+	$GLOBALS['system']->create(system::USER, $data);
+	
+	responder::send(array("name"=>$account));
+});
+
+return $a;
 
 ?>
