@@ -74,8 +74,10 @@ $a->setExecute(function() use ($a)
 	switch( $result['database_type'] )
 	{
 		case 'mysql':
-			$sql = "";
-			
+			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+			mysql_query("DROP USER '{$database}'", $link);
+			mysql_query("DROP DATABASE `{$database}`", $link);
+			mysql_close($link);
 		break;	
 	}
 	

@@ -24,6 +24,14 @@ $a->addParam(array(
 	'action'=>true
 	));
 $a->addParam(array(
+	'name'=>array('pass', 'password', 'site_pass', 'site_password'),
+	'description'=>'The new site password.',
+	'optional'=>false,
+	'minlength'=>3,
+	'maxlength'=>30,
+	'match'=>request::PHRASE|request::SPECIAL
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>false,
@@ -44,6 +52,7 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$site = $a->getParam('site');
+	$pass = $a->getParam('pass');
 	$user = $a->getParam('user');
 	
 	if( is_numeric($subdomain) )
@@ -93,7 +102,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$dn = ldap::buildDN(ldap::SUBDOMAIN, $GLOBALS['CONFIG']['DOMAIN'], $site);
 	$parts = explode('.', $site);
-	$params = array('dn' => $dn, 'subdomain' => $site, 'uid' => $parts[0], 'domain' => $GLOBALS['CONFIG']['DOMAIN'], 'owner' => $user_dn);
+	$params = array('dn' => $dn, 'subdomain' => $site, 'userPassword' => $pass, 'uid' => $parts[0], 'domain' => $GLOBALS['CONFIG']['DOMAIN'], 'owner' => $user_dn);
 	
 	$handler = new subdomain();
 	$data = $handler->build($params);
