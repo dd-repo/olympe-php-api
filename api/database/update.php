@@ -18,7 +18,7 @@ $a->addParam(array(
 	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>30,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT
+	'match'=>request::LOWER|request::UPPER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
 	'name'=>array('pass', 'password'),
