@@ -26,7 +26,7 @@ function checkQuota($type, $user)
 			AND {$where}";
 	$result = $GLOBALS['db']->query($sql);
 	
-	if( $result == null || $result['quota_max'] == null || $result['quota_used'] >= $result['quota_max'] )
+	if( $result == null || $result['quota_max'] == null || $result['quota_used'] >= $result['quota_max']+1 )
 		throw new ApiException("Unsufficient quota", 412, "Quota limit reached or not set : {$result['quota_used']}/{$result['quota_max']}");
 }
 
@@ -70,11 +70,30 @@ function syncQuota($type, $user)
 			throw new ApiException("Undefined quota type", 500, "Not preconfigured for quota type : {$type}");
 	}
 	
-	$sql = "UPDATE IGNORE user_quota 
+	if( $count !== null && $count !== false )
+	{
+		$sql = "UPDATE IGNORE user_quota 
 			SET quota_used=LEAST({$count},quota_max)
 			WHERE quota_id IN (SELECT q.quota_id FROM quotas q WHERE q.quota_name='".security::escape($type)."')
 			AND user_id IN (SELECT u.user_id FROM users u WHERE {$where})";
-	$GLOBALS['db']->query($sql, mysql::NO_ROW);
+			
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	}
+	
 }
+
+// ========================= DECLARE ACTION
+
+$a = new action();
+$a->addAlias(array('internal'));
+$a->setDescription("Include utility functions for the quota");
+$a->addGrant(array('QUOTA_USER_INTERNAL'));
+
+$a->setExecute(function() use ($a)
+{
+	$a->checkAuth();
+});
+
+return $a;
 
 ?>
