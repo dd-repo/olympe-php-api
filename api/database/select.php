@@ -22,7 +22,7 @@ $a->setReturn(array(array(
 $a->addParam(array(
 	'name'=>array('database', 'name', 'database_name'),
 	'description'=>'The name of the database to remove.',
-	'optional'=>false,
+	'optional'=>true,
 	'minlength'=>1,
 	'maxlength'=>30,
 	'match'=>request::LOWER|request::UPPER|request::NUMBER|request::PUNCT
