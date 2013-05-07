@@ -6,95 +6,92 @@ if( !defined('PROPER_START') )
 	exit;
 }
 
-$help = request::getAction(false, false);
-if( $help == 'help' || $help == 'doc' )
-{
-	$body = "
-<h1><a href=\"/help\">API Help</a> :: <a href=\"/site/help\">site</a> :: delete</h1>
-<ul>
-	<li><h2>Alias :</h2> del, remove, destroy</li>
-	<li><h2>Description :</h2> removes a site</li>
-	<li><h2>Parameters :</h2>
-		<ul>
-			<li>site : The name or id of the site to remove. <span class=\"required\">required</span>. <span class=\"urlizable\">urlizable</span>. (alias : name, site_name, site, id, site_id, uid)</li>
-			<li>user : The name or id of the target user. <span class=\"required\">required</span>. (alias : user_name, username, login, user_id, uid)</li>
-		</ul>
-	</li>
-	<li><h2>Returns :</h2> OK</li>
-	<li><h2>Required grants :</h2> ACCESS, SITE_DELETE</li>
-</ul>";
-	responder::help($body);
-}
+$a = new action();
+$a->addAlias(array('del', 'remove', 'destroy'));
+$a->setDescription("Removes a site");
+$a->addGrant(array('ACCESS', 'SITE_DELETE'));
+$a->setReturn("OK");
 
-// =================================
-// CHECK AUTH
-// =================================
-security::requireGrants(array('ACCESS', 'SITE_DELETE'));
-
-// =================================
-// GET PARAMETERS
-// =================================
-$site = request::getCheckParam(array(
-	'name'=>array('name', 'site_name', 'site', 'id', 'site_id', 'uid'),
+$a->addParam(array(
+	'name'=>array('site', 'name', 'id', 'site_id'),
+	'description'=>'The name or id of the site to remove.',
 	'optional'=>false,
-	'minlength'=>1,
+	'minlength'=>2,
 	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	'action'=>true
 	));
-$user = request::getCheckParam(array(
-	'name'=>array('user_name', 'username', 'login', 'user', 'user_id', 'uid'),
-	'optional'=>false,
-	'minlength'=>1,
+$a->addParam(array(
+	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
+	'description'=>'The name or id of the target user.',
+	'optional'=>true,
+	'minlength'=>0,
 	'maxlength'=>30,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	'action'=>false
 	));
 
-// =================================
-// CHECK OWNER
-// =================================
-if( $user !== null )
+$a->setExecute(function() use ($a)
 {
-	$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
-	$userdata = $GLOBALS['db']->query($sql);
-	if( $userdata == null || $userdata['user_ldap'] == null )
-		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+	// =================================
+	// CHECK AUTH
+	// =================================
+	$a->checkAuth();
 
+	// =================================
+	// GET PARAMETERS
+	// =================================
+	$site = $a->getParam('site');
+	$user = $a->getParam('user');
+
+	// =================================
+	// GET REMOTE INFO
+	// =================================
 	if( is_numeric($site) )
-		$result = asapi::send('/'.$GLOBALS['CONFIG']['DOMAIN'].'/subdomains', 'GET', array('uidNumber'=>$site));
+		$dn = $GLOBALS['ldap']->getDNfromUID($site);
 	else
-		$result = asapi::send('/'.$GLOBALS['CONFIG']['DOMAIN'].'/subdomains/'.$site, 'GET');
+		$dn = ldap::buildDN(ldap::SUBDOMAIN, $GLOBALS['CONFIG']['DOMAIN'], $site);
+	
+	$result = $GLOBALS['ldap']->read($dn);
 		
-	if( $result['gidNumber'] != $userdata['user_ldap'] )
-		throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the site {$site}");
-}
+	if( $result == null || $result['uidNumber'] == null )
+		throw new ApiException("Unknown site", 412, "Unknown site : {$site}");
+	
+	// =================================
+	// CHECK OWNER
+	// =================================
+	if( $user !== null )
+	{
+		$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$userdata = $GLOBALS['db']->query($sql);
+		if( $userdata == null || $userdata['user_ldap'] == null )
+			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 
-// =================================
-// DELETE REMOTE SITE
-// =================================
-if( is_numeric($site) )
-{
-	$params = array('uidNumber' => $site);
-	asapi::send('/'.$GLOBALS['CONFIG']['DOMAIN'].'/subdomains/', 'DELETE', $params);
-}
-else
-	asapi::send('/'.$GLOBALS['CONFIG']['DOMAIN'].'/subdomains/'.$site, 'DELETE');
+		// =================================
+		// GET REMOTE USER DN
+		// =================================	
+		$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
 
-// =================================
-// SYNC QUOTA
-// =================================
-grantStore::add('QUOTA_USER_INTERNAL');
-request::forward('/quota/user/internal');
-syncQuota('SITES', $userdata['user_id']);
+		if( is_array($result['owner']) )
+			$result['owner'] = $result['owner'][0];
+			
+		if( $result['owner'] != $user_dn )
+			throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the site {$site}");
+	}
 
-// =================================
-// DELETE PIWIK SITE
-// =================================
-$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.getSitesIdFromSiteUrl&url=http://{$result['associatedDomain']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
-$json = json_decode(@file_get_contents($url), true);
-$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.deleteSite&idSite={$json[0]['idsite']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
-@file_get_contents($url);
+	// =================================
+	// DELETE REMOTE SITE
+	// =================================
+	$GLOBALS['ldap']->delete($dn);
 
-responder::send("OK");
+	// =================================
+	// POST-DELETE SYSTEM ACTIONS
+	// =================================
+	$GLOBALS['system']->delete(system::SUBDOMAIN, $result);
+	
+	responder::send("OK");
+});
+
+return $a;
 
 ?>

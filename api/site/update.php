@@ -6,112 +6,117 @@ if( !defined('PROPER_START') )
 	exit;
 }
 
-$help = request::getAction(false, false);
-if( $help == 'help' || $help == 'doc' )
-{
-	$body = "
-<h1><a href=\"/help\">API Help</a> :: <a href=\"/site/help\">site</a> :: update</h1>
-<ul>
-	<li><h2>Alias :</h2> modify, change</li>
-	<li><h2>Description :</h2> changes the password of a site</li>
-	<li><h2>Parameters :</h2>
-		<ul>
-			<li>site : The name or id of the site. <span class=\"required\">required</span>. <span class=\"urlizable\">urlizable</span>. (alias : name, site_name, id, uid, site_id)</li>
-			<li>pass : The new password of the site. <span class=\"optional\">optional</span>. (alias : password, site_pass, site_password)</li>
-			<li>valid : [0 : pending (default) | 1 : valid | 2 unvalid]. <span class=\"optional\">optional</span>. (alias : validation)</li>
-			<li>explain : Why the validation status?. <span class=\"optional\">optional</span>. (alias : reason)</li>
-			<li>user : The name or id of the target user. <span class=\"optional\">optional</span>. (alias : user_name, username, login, user_id, uid)</li>
-		</ul>
-	</li>
-	<li><h2>Returns :</h2> OK</li>
-	<li><h2>Required grants :</h2> ACCESS, SITE_UPDATE</li>
-</ul>";
-	responder::help($body);
-}
+$a = new action();
+$a->addAlias(array('modify', 'change'));
+$a->setDescription("Modify a site");
+$a->addGrant(array('ACCESS', 'SITE_UPDATE'));
+$a->setReturn("OK");
 
-// =================================
-// CHECK AUTH
-// =================================
-security::requireGrants(array('ACCESS', 'SITE_UPDATE'));
-
-// =================================
-// GET PARAMETERS
-// =================================
-$site = request::getCheckParam(array(
-	'name'=>array('name', 'site_name', 'site', 'id', 'uid', 'site_id'),
+$a->addParam(array(
+	'name'=>array('site', 'name', 'id', 'site_id'),
+	'description'=>'The name or id of the site to modify.',
 	'optional'=>false,
 	'minlength'=>2,
 	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	'action'=>true
 	));
-$pass = request::getCheckParam(array(
-	'name'=>array('pass', 'password', 'site_pass', 'site_password'),
+$a->addParam(array(
+	'name'=>array('arecord'),
+	'description'=>'The A Record of the site.',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>30,
-	'match'=>request::PHRASE|request::SPECIAL
+	'maxlength'=>20,
+	'match'=>request::NUMBER|request::PUNCT
 	));
-$user = request::getCheckParam(array(
-	'name'=>array('user_name', 'username', 'login', 'user', 'user_id', 'uid'),
+$a->addParam(array(
+	'name'=>array('cnamerecord'),
+	'description'=>'The CNAME Record of the site.',
 	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>30,
+	'minlength'=>0,
+	'maxlength'=>20,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
-$valid = request::getCheckParam(array(
-	'name'=>array('valid', 'validation'),
+$a->addParam(array(
+	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
+	'description'=>'The name or id of the target user.',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>1,
-	'match'=>request::NUMBER
-	));
-$explain = request::getCheckParam(array(
-	'name'=>array('explain', 'reason'),
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>25000,
-	'match'=>request::ALL
+	'maxlength'=>30,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	'action'=>false
 	));
 
-// =================================
-// GET REMOTE SITE INFO
-// =================================
-if( is_numeric($site) )
-	$result = asapi::send('/'.$GLOBALS['CONFIG']['DOMAIN'].'/subdomains', 'GET', array('uidNumber'=>$site));
-else
-	$result = asapi::send('/'.$GLOBALS['CONFIG']['DOMAIN'].'/subdomains/'.$site, 'GET');
-
-if( $result == null || $result['uidNumber'] == null )
-	throw new ApiException("Unknown site", 412, "Unknown site : {$site}");
-
-// =================================
-// CHECK OWNER
-// =================================
-if( $user !== null )
+$a->setExecute(function() use ($a)
 {
-	$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
-	$userdata = $GLOBALS['db']->query($sql);
-	if( $userdata == null || $userdata['user_ldap'] == null )
-		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-	if( $result['gidNumber'] != $userdata['user_ldap'] )
-		throw new ApiException("Forbidden", 403, "User {$user} ({$userdata['user_ldap']}) does not match owner of the site {$site} ({$result['gidNumber']})");
-}
+	// =================================
+	// CHECK AUTH
+	// =================================
+	$a->checkAuth();
 
-// =================================
-// UPDATE REMOTE SITE
-// =================================
-$params = array();
-
-if( $pass != null )
-	$params['userPassword'] = base64_encode($pass);
-if( $valid != null )
-	$params['gecos'] = $valid;
-if( $explain != null )
-	$params['description'] = $explain;
+	// =================================
+	// GET PARAMETERS
+	// =================================
+	$site = $a->getParam('site');
+	$arecord = $a->getParam('arecord');
+	$cnamerecord = $a->getParam('cnamerecord');
+	$user = $a->getParam('user');
 	
-asapi::send('/'.$GLOBALS['CONFIG']['DOMAIN'].'/subdomains/'.$result['uid'], 'PUT', $params);
+	// =================================
+	// GET REMOTE INFO
+	// =================================
+	if( is_numeric($site) )
+		$dn = $GLOBALS['ldap']->getDNfromUID($site);
+	else
+		$dn = ldap::buildDN(ldap::SUBDOMAIN, $GLOBALS['CONFIG']['DOMAIN'], $site);
+	
+	$result = $GLOBALS['ldap']->read($dn);
+	
+	if( $result == null || $result['uidNumber'] == null )
+		throw new ApiException("Unknown site", 412, "Unknown site : {$site}");
 
-responder::send("OK");
+	// =================================
+	// CHECK OWNER
+	// =================================
+	if( $user !== null )
+	{
+		$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$userdata = $GLOBALS['db']->query($sql);
+		
+		if( $userdata == null || $userdata['user_ldap'] == null )
+			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+
+		// =================================
+		// GET REMOTE USER DN
+		// =================================	
+		$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
+
+		if( is_array($result['owner']) )
+			$result['owner'] = $result['owner'][0];
+		
+		if( $result['owner'] != $user_dn )
+			throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the site {$site}");
+	}
+
+	// =================================
+	// UPDATE REMOTE SITE
+	// =================================
+	if( $arecord !== null )
+	{
+		$params = array('aRecord'=>$arecord);
+		$GLOBALS['ldap']->replace($dn, array('cNAMERecord'=>$result['cNAMERecord']), ldap::DELETE);
+	}
+	else if( $cnamerecord !== null )
+	{
+		$params = array('cNAMERecord'=>$cnamerecord);
+		$GLOBALS['ldap']->replace($dn, array('aRecord'=>$result['aRecord']), ldap::DELETE);
+	}
+
+	$GLOBALS['ldap']->replace($dn, $params);
+
+	responder::send("OK");
+});
+
+return $a;
 
 ?>
