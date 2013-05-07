@@ -26,7 +26,7 @@ function checkQuota($type, $user)
 			AND {$where}";
 	$result = $GLOBALS['db']->query($sql);
 	
-	if( $result == null || $result['quota_max'] == null || $result['quota_used'] >= $result['quota_max']+1 )
+	if( $result == null || $result['quota_max'] == null || $result['quota_used'] >= $result['quota_max'] )
 		throw new ApiException("Unsufficient quota", 412, "Quota limit reached or not set : {$result['quota_used']}/{$result['quota_max']}");
 }
 
@@ -40,134 +40,41 @@ function syncQuota($type, $user)
 	$count = "quota_used";
 	switch($type)
 	{
+		case 'SITES':
+			$sql = "SELECT user_ldap FROM users u WHERE {$where}";
+			$result = $GLOBALS['db']->query($sql);
+			if( $result == null || $result['user_ldap'] == null )
+				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+			$result = asapi::send('/olympe.in/subdomains', 'GET', array('gidNumber' => $result['user_ldap']));
+			$count = count($result);
+			break;
 		case 'DOMAINS':
 			$sql = "SELECT user_ldap FROM users u WHERE {$where}";
-			$userdata = $GLOBALS['db']->query($sql);
-			if( $userdata == null || $userdata['user_ldap'] == null )
+			$result = $GLOBALS['db']->query($sql);
+			if( $result == null || $result['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-			$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
-			$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::DOMAIN, "(owner={$user_dn})"));
+			$result = asapi::send('/domains', 'GET', array('gidNumber' => $result['user_ldap']));
 			$count = count($result);
 			break;
-		case 'APPS':
-			$sql = "SELECT user_ldap FROM users u WHERE {$where}";
-			$userdata = $GLOBALS['db']->query($sql);
-			if( $userdata == null || $userdata['user_ldap'] == null )
+		case 'DATABASES':
+			$sql = "SELECT COUNT(*) as c
+					FROM `databases` d
+					LEFT JOIN users u ON(u.user_id = d.database_user)
+					WHERE {$where}";
+			$result = $GLOBALS['db']->query($sql);
+			if( $result == null || $result['c'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-			$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
-			$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::APP, "(owner={$user_dn})"));
-			$count = count($result);
+			$count = $result['c'];
 			break;
-		case 'MEMORY':
-			$sql = "SELECT user_ldap, user_cf_token FROM users u WHERE {$where}";
-			$userdata = $GLOBALS['db']->query($sql);
-			if( $userdata == null || $userdata['user_ldap'] == null )
-				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-			$cf_info = cf::send('info', 'GET', array(), $userdata['user_cf_token']);
-			$count = $cf_info['usage']['memory'];
-		break;
-		case 'SERVICES':
-			$sql = "SELECT user_ldap, user_cf_token FROM users u WHERE {$where}";
-			$userdata = $GLOBALS['db']->query($sql);
-			if( $userdata == null || $userdata['user_ldap'] == null )
-				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-			$cf_info = cf::send('info', 'GET', array(), $userdata['user_cf_token']);
-			$count = $cf_info['usage']['services'];
-		break;
-		case 'DISK':
-			$sql = "SELECT user_ldap, user_id FROM users u WHERE {$where}";
-			$userdata = $GLOBALS['db']->query($sql);
-			if( $userdata == null || $userdata['user_ldap'] == null )
-				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-			$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
-			$usage = 0;
-			$usage = $GLOBALS['system']->getquota($userdata['user_ldap']);
-			$usage = round($usage/1024);
-			
-			$apps = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::APP, "(owner={$user_dn})"));
-			foreach( $apps as $a )
-			{
-				$u = 0;
-				$u = $GLOBALS['system']->getquota($a['uidNumber']);
-				$u = round($u/1024);
-				
-				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '{$a['homeDirectory']}'";
-				$store = $GLOBALS['db']->query($sql);
-				if( $store['storage_id'] )
-					$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
-				else
-					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('{$a['homeDirectory']}', {$u})";
-				$GLOBALS['db']->query($sql, mysql::NO_ROW);
-				
-				$usage = $usage+$u;
-			}
-			
-			$users = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::USER, "(owner={$user_dn})"));
-			foreach( $users as $user )
-			{
-				$u = 0;
-				$u = $GLOBALS['system']->getquota($user['uidNumber']);
-				$u = round($u/1024);
-				
-				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '{$user['homeDirectory']}'";
-				$store = $GLOBALS['db']->query($sql);
-				if( $store['storage_id'] )
-					$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
-				else
-					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('{$user['homeDirectory']}', {$u})";
-				$GLOBALS['db']->query($sql, mysql::NO_ROW);
-				
-				$usage = $usage+$u;
-			}
-
-			$repos = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::REPO, "(owner={$user_dn})"));			
-			foreach( $repos as $r )
-			{
-				$u = 0;
-				$u = $GLOBALS['system']->getquota($r['uidNumber']);
-				$u = round($u/1024);
-				
-				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
-				$store = $GLOBALS['db']->query($sql);
-				if( $store['storage_id'] )
-					$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
-				else
-					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('{$r['homeDirectory']}', {$u})";
-				$GLOBALS['db']->query($sql, mysql::NO_ROW);
-				
-				$usage = $usage+$u;
-			}
-			
-			$count = $usage;
-		break;
 		default:
 			throw new ApiException("Undefined quota type", 500, "Not preconfigured for quota type : {$type}");
 	}
 	
-	if( $count !== null && $count !== false )
-	{
-		$sql = "UPDATE IGNORE user_quota 
+	$sql = "UPDATE IGNORE user_quota 
 			SET quota_used=LEAST({$count},quota_max)
 			WHERE quota_id IN (SELECT q.quota_id FROM quotas q WHERE q.quota_name='".security::escape($type)."')
 			AND user_id IN (SELECT u.user_id FROM users u WHERE {$where})";
-			
-		$GLOBALS['db']->query($sql, mysql::NO_ROW);
-	}
-	
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 }
-
-// ========================= DECLARE ACTION
-
-$a = new action();
-$a->addAlias(array('internal'));
-$a->setDescription("Include utility functions for the quota");
-$a->addGrant(array('QUOTA_USER_INTERNAL'));
-
-$a->setExecute(function() use ($a)
-{
-	$a->checkAuth();
-});
-
-return $a;
 
 ?>
