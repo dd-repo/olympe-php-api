@@ -47,29 +47,24 @@ $a->setExecute(function() use ($a)
 	foreach( $result as $r )
 	{
 		// =================================
+		// SYNC SITES QUOTA
+		// =================================
+		syncQuota('SITES', $r['user_id']);
+		
+		// =================================
 		// SYNC DOMAINS QUOTA
 		// =================================
 		syncQuota('DOMAINS', $r['user_id']);
 
 		// =================================
-		// SYNC SERVICES QUOTA
+		// SYNC DATABASES QUOTA
 		// =================================
-		syncQuota('SERVICES', $r['user_id']);
+		syncQuota('DATABASES', $r['user_id']);
 
 		// =================================
 		// SYNC DISK QUOTA
 		// =================================
-		syncQuota('DISK', $r['user_id']);
-
-		// =================================
-		// SYNC MEMORY QUOTA
-		// =================================
-		syncQuota('MEMORY', $r['user_id']);
-		
-		// =================================
-		// SYNC APPS QUOTA
-		// =================================
-		syncQuota('APPS', $r['user_id']);
+		syncQuota('DISK', $r['user_id']);	
 	}
 	
 	responder::send("OK");

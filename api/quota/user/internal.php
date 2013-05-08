@@ -68,6 +68,54 @@ function syncQuota($type, $user)
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 			$count = $result['c'];
 			break;
+		case 'DISK':
+			$sql = "SELECT user_ldap, user_id FROM users u WHERE {$where}";
+			$userdata = $GLOBALS['db']->query($sql);
+			if( $userdata == null || $userdata['user_ldap'] == null )
+				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+			$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
+			$usage = 0;
+			$usage = $GLOBALS['system']->getquota($userdata['user_ldap']);
+			$usage = round($usage/1024);
+			
+			$sites = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $GLOBALS['CONFIG']['DOMAIN']), ldap::buildFilter(ldap::SUBDOMAIN, "(owner={$user_dn})"));
+			foreach( $sites as $s )
+			{
+				$u = 0;
+				$u = $GLOBALS['system']->getquota($s['uidNumber']);
+				$u = round($u/1024);
+				
+				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '{$s['homeDirectory']}'";
+				$store = $GLOBALS['db']->query($sql);
+				if( $store['storage_id'] )
+					$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
+				else
+					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('{$s['homeDirectory']}', {$u})";
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);
+				
+				$usage = $usage+$u;
+			}
+			
+			$users = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::USER, "(owner={$user_dn})"));
+			foreach( $users as $user )
+			{
+				$u = 0;
+				$u = $GLOBALS['system']->getquota($user['uidNumber']);
+				$u = round($u/1024);
+				
+				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '{$user['homeDirectory']}'";
+				$store = $GLOBALS['db']->query($sql);
+				if( $store['storage_id'] )
+					$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
+				else
+					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('{$user['homeDirectory']}', {$u})";
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);
+				
+				$usage = $usage+$u;
+			}
+			
+			$count = $usage;
+			break;
 		default:
 			throw new ApiException("Undefined quota type", 500, "Not preconfigured for quota type : {$type}");
 	}

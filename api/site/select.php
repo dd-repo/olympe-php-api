@@ -122,7 +122,7 @@ $a->setExecute(function() use ($a)
 			$s['aRecord'] = $r['aRecord'];
 			$s['user'] = array('id'=>'', 'name'=>'');
 			
-			$sites[] = $s;		
+			$sites[] = $s;	
 		}
 	}
 
