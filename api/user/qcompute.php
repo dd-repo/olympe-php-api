@@ -39,6 +39,12 @@ $a->setExecute(function() use ($a)
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 
 	// =================================
+	// RESET MAIL QUOTA
+	// =================================
+	$sql = "UPDATE user_quota SET quota_used = 0 where quota_id = 15";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	
+	// =================================
 	// INIT QUOTAS
 	// =================================		
 	grantStore::add('QUOTA_USER_INTERNAL');
@@ -62,9 +68,9 @@ $a->setExecute(function() use ($a)
 		syncQuota('DATABASES', $r['user_id']);
 
 		// =================================
-		// SYNC DISK QUOTA
+		// SYNC BYTES QUOTA
 		// =================================
-		syncQuota('DISK', $r['user_id']);	
+		syncQuota('BYTES', $r['user_id']);
 	}
 	
 	responder::send("OK");

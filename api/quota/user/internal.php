@@ -68,7 +68,7 @@ function syncQuota($type, $user)
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 			$count = $result['c'];
 			break;
-		case 'DISK':
+		case 'BYTES':
 			$sql = "SELECT user_ldap, user_id FROM users u WHERE {$where}";
 			$userdata = $GLOBALS['db']->query($sql);
 			if( $userdata == null || $userdata['user_ldap'] == null )
