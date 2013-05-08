@@ -220,9 +220,9 @@ L'&eacute;quipe Olympe";
 
 	if( $valid === true && $code !== null )
 	{
-		if( $result['user_code'] == $code )
+		if( $result['user_code'] == $code && strlen($code) > 4 )
 		{
-			$sql = "UPDATE users SET user_status = 0 WHERE user_id = {$result['user_id']}";
+			$sql = "UPDATE users SET user_status = 0, user_code = 0 WHERE user_id = {$result['user_id']}";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 		else
