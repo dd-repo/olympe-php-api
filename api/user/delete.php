@@ -84,6 +84,28 @@ $a->setExecute(function() use ($a)
 				$GLOBALS['system']->delete(system::DOMAIN, $d);
 			}
 		}
+
+		// =================================
+		// DATABASES
+		// =================================
+		$sql = "SELECT d.database_type, d.database_name FROM `databases` d WHERE database_user = '{$result['user_id']}'";
+		$databases = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+	
+		foreach( $databases as $d )
+		{
+			switch( $result['database_type'] )
+			{
+				case 'mysql':
+					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+					mysql_query("DROP USER '{$database}'", $link);
+					mysql_query("DROP DATABASE `{$database}`", $link);
+					mysql_close($link);
+				break;	
+			}
+
+			$sql = "DELETE FROM `databases` WHERE database_name = '".security::escape($database)."'";
+			$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		}
 		
 		// =================================
 		// DELETE REMOTE USER
