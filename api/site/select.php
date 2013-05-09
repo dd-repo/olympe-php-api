@@ -40,6 +40,14 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	'action'=>false
 	));
+$a->addParam(array(
+	'name'=>array('count'),
+	'description'=>'Whether or not to include only the number of matches. Default is false.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -53,7 +61,11 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$site = $a->getParam('site');
 	$user = $a->getParam('user');
-
+	$count = $a->getParam('count');
+	
+	if( $count == '1' || $count == 'yes' || $count == 'true' || $count === true || $count === 1 ) $count = true;
+	else $count = false;
+	
 	// =================================
 	// GET USER DATA
 	// =================================
@@ -80,11 +92,14 @@ $a->setExecute(function() use ($a)
 	else if( $user !== null )
 	{
 		$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
-		$result = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $GLOBALS['CONFIG']['DOMAIN']), ldap::buildFilter(ldap::SUBDOMAIN, "(owner={$user_dn})"));
+		$result = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $GLOBALS['CONFIG']['DOMAIN']), ldap::buildFilter(ldap::SUBDOMAIN, "(owner={$user_dn})"), $count));
 	}
 	else
-		$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::SUBDOMAIN));
+		$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::SUBDOMAIN), $count));
 
+	if( $count === true )
+		responder::send($result);
+		
 	// =================================
 	// FORMAT RESULT
 	// =================================
