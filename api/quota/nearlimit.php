@@ -58,26 +58,18 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// FORMAT RESULT
 	// =================================
+	$user = null;
 	$users = array();
 	foreach( $result as $r )
 	{
-		if( $current == null || $current['id'] != $r['user_id'] )
+		if( round(($r['quota_used']*100)/$r['quota_max']) >= 80 )
 		{
-			if( $current != null )
-				$users[] = $current;
+			$user = array('name'=>$r['user_name'], 'id'=>$r['user_id'], 'uid'=>$r['user_ldap'], 'firstname'=>'', 'lastname'=>'', 'email'=>'', 'status'=>$r['user_status'], 'date'=>$r['user_date'], 'ip'=>'', 'last'=>$r['user_last_notification']);
+			$user['quotas'] = array('id'=>$r['quota_id'], 'name'=>$r['quota_name'], 'max'=>$r['quota_max'], 'used'=>$r['quota_used']);
 			
-			$current = array('name'=>$r['user_name'], 'id'=>$r['user_id'], 'uid'=>$r['user_ldap'], 'firstname'=>'', 'lastname'=>'', 'email'=>'', 'status'=>$r['user_status'], 'date'=>$r['user_date'], 'ip'=>'', 'last'=>$r['user_last_notification']);
-			
-			if( $quota )
-				$current['quotas'] = array();
+			$users[] = $user;
 		}
-		
-		if( $quota && $r['quota_id'] != null )
-			$current['quotas'][] = array('id'=>$r['quota_id'], 'name'=>$r['quota_name'], 'max'=>$r['quota_max'], 'used'=>$r['quota_used']);
 	}
-	
-	if( $current != null )
-		$users[] = $current;
 			
 	responder::send($users);
 });
