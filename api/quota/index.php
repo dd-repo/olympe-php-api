@@ -28,6 +28,8 @@ switch($action)
 	case 'remove':
 	case 'destroy':
 		request::forward('/quota/delete'); break;
+	case 'nearlimit':
+		request::forward('/quota/nearlimit'); break;
 	case 'user':
 	case 'users':
 		request::forward('/quota/user/index'); break;
