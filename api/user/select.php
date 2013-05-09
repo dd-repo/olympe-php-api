@@ -179,6 +179,9 @@ $a->setExecute(function() use ($a)
 	}
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 
+	if( $count === true )
+		responder::send(array('count'=>count($result)));
+			
 	// =================================
 	// FORMAT RESULT
 	// =================================
@@ -202,7 +205,7 @@ $a->setExecute(function() use ($a)
 	}
 	if( $current != null )
 		$users[] = $current;
-
+			
 	if( $fast )
 	{
 		responder::send($users);
@@ -213,10 +216,7 @@ $a->setExecute(function() use ($a)
 	// RETREIVE INFO FROM REMOTE USER
 	// =================================
 	try
-	{	
-		if( $count === true )
-			responder::send(array('count'=>count($ids)));
-		
+	{		
 		$remote = $users;
 		$i = 0;
 		foreach( $remote as $r )
