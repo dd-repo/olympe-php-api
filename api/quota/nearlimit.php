@@ -62,7 +62,7 @@ $a->setExecute(function() use ($a)
 	$users = array();
 	foreach( $result as $r )
 	{
-		if( round(($r['quota_used']*100)/$r['quota_max']) >= 80 )
+		if( $r['quota_max'] != 0 && round(($r['quota_used']*100)/$r['quota_max']) >= 80 )
 		{
 			$user = array('name'=>$r['user_name'], 'id'=>$r['user_id'], 'uid'=>$r['user_ldap'], 'firstname'=>'', 'lastname'=>'', 'email'=>'', 'status'=>$r['user_status'], 'date'=>$r['user_date'], 'ip'=>'', 'last'=>$r['user_last_notification']);
 			$user['quotas'] = array('id'=>$r['quota_id'], 'name'=>$r['quota_name'], 'max'=>$r['quota_max'], 'used'=>$r['quota_used']);
