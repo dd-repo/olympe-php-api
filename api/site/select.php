@@ -92,10 +92,10 @@ $a->setExecute(function() use ($a)
 	else if( $user !== null )
 	{
 		$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
-		$result = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $GLOBALS['CONFIG']['DOMAIN']), ldap::buildFilter(ldap::SUBDOMAIN, "(owner={$user_dn})"), $count));
+		$result = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $GLOBALS['CONFIG']['DOMAIN']), ldap::buildFilter(ldap::SUBDOMAIN, "(owner={$user_dn})"), $count);
 	}
 	else
-		$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::SUBDOMAIN), $count));
+		$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::SUBDOMAIN), $count);
 
 	if( $count === true )
 		responder::send($result);
