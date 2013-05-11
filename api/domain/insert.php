@@ -133,6 +133,7 @@ $a->setExecute(function() use ($a)
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
 	$data['destination'] = $site_data['homeDirectory'] . '/' . $dir;
+	$data['site_data'] = $site_data;
 	$GLOBALS['system']->create(system::DOMAIN, $data);
 	
 	// =================================
