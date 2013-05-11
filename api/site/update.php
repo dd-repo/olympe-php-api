@@ -38,6 +38,15 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
+	'name'=>array('pass', 'password', 'account_password', 'account_pass'),
+	'description'=>'The password of the account.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>50,
+	'match'=>request::PHRASE|request::SPECIAL,
+	'action'=>true
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -60,6 +69,7 @@ $a->setExecute(function() use ($a)
 	$site = $a->getParam('site');
 	$arecord = $a->getParam('arecord');
 	$cnamerecord = $a->getParam('cnamerecord');
+	$pass = $a->getParam('pass');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -101,6 +111,9 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// UPDATE REMOTE SITE
 	// =================================
+	if( $pass !== null )
+		$params['userPassword'] = $pass;
+
 	if( $arecord !== null )
 	{
 		$params = array('aRecord'=>$arecord);
