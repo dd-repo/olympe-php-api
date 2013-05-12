@@ -148,6 +148,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
+	$data['domain'] = $GLOBALS['CONFIG']['DOMAIN'];
 	$GLOBALS['system']->create(system::USER, $data);
 	
 	responder::send(array("name"=>$user, "id"=>$uid));
