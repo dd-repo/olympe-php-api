@@ -7,9 +7,9 @@ if( !defined('PROPER_START') )
 }
 
 $a = new action();
-$a->addAlias(array('delete', 'del', 'remove', 'destroy'));
-$a->setDescription("Removes a database");
-$a->addGrant(array('ACCESS', 'DATABASE_DELETE'));
+$a->addAlias(array('modify', 'change'));
+$a->setDescription("Edit a database");
+$a->addGrant(array('ACCESS', 'DATABASE_UPDATE'));
 $a->setReturn("OK");
 
 $a->addParam(array(
