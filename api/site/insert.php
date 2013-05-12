@@ -96,7 +96,6 @@ $a->setExecute(function() use ($a)
 			throw $e;
 	}
 
-
 	// =================================
 	// INSERT REMOTE SITE
 	// =================================
@@ -108,6 +107,12 @@ $a->setExecute(function() use ($a)
 	$data = $handler->build($params);
 	
 	$result = $GLOBALS['ldap']->create($dn, $data);
+
+	// =================================
+	// UPDATE REMOTE USER
+	// =================================
+	$mod['member'] = $dn;
+	$GLOBALS['ldap']->replace($user_dn, $mod, ldap::ADD);
 	
 	// =================================
 	// INSERT PIWIK SITE
