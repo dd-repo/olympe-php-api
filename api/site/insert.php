@@ -115,6 +115,11 @@ $a->setExecute(function() use ($a)
 	$GLOBALS['ldap']->replace($user_dn, $mod, ldap::ADD);
 	
 	// =================================
+	// GET REMOTE USER INFO
+	// =================================
+	$user_info = $GLOBALS['ldap']->read($user_dn);
+	
+	// =================================
 	// INSERT PIWIK SITE
 	// =================================
 	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.addSite&siteName={$site}&urls=http://{$site}.{$GLOBALS['CONFIG']['DOMAIN']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
@@ -125,6 +130,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
+	$data['user_info'] = $user_info;
 	$GLOBALS['system']->create(system::SUBDOMAIN, $data);
 	
 	// =================================
