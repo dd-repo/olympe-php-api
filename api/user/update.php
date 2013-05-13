@@ -170,7 +170,7 @@ $a->setExecute(function() use ($a)
 	{
 	}
 
-	if( $notif  === true )
+	if( $notif === true )
 	{
 		$email ="Bonjour,<br />
 <br />
@@ -187,38 +187,38 @@ Cordialement,<br />
 L'&eacute;quipe Olympe";
 
 		$chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-                $code = '';
-                for( $u = 1; $u <= 8; $u++ )
-                {
-                        $number = strlen($chars);
-                        $number = mt_rand(0,($number-1));
-                        $code .= $chars[$number];
-                }
+		$code = '';
+		for( $u = 1; $u <= 8; $u++ )
+		{
+			$number = strlen($chars);
+			$number = mt_rand(0,($number-1));
+			$code .= $chars[$number];
+		}
 
-		if( $result['user_status'] == 0 )
+		if( $result['user_status'] == 0 && $result['user_last_notification'] < time()-(3600*24*90) )
 		{
 			$sql = "UPDATE users SET user_status = 1, user_code = '{$code}', user_last_notification = ".time()." WHERE user_id = {$result['user_id']}";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);		
 			$content = str_replace(array('{ACCOUNT}', '{LINK}', '{DAYS}'), array($result['user_name'], 'http://hosting.olympe.in/valid?user='.$result['user_id'].'&code='.$code, 30), $email);
 			mail($data['mailForwardingAddress'], '[Olympe] Validation de votre compte', $content, "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: Olympe <no-reply@olympe.in>\r\n");
 		}
-                if( $result['user_status'] == 1 )
-                {
-                        $sql = "UPDATE users SET user_status = 2, user_code = '{$code}', user_last_notification = ".time()." WHERE user_id = {$result['user_id']}";
-                        $GLOBALS['db']->query($sql, mysql::NO_ROW);
-                        $content = str_replace(array('{ACCOUNT}', '{LINK}', '{DAYS}'), array($result['user_name'], 'http://hosting.olympe.in/valid?user='.$result['user_id'].'&code='.$code, 15), $email);
-                        mail($data['mailForwardingAddress'], '[Olympe] Validation de votre compte', $content, "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: Olympe <no-reply@olympe.in>\r\n");
-                }
-                if( $result['user_status'] == 2 )
-                {
-                        $sql = "UPDATE users SET user_status = 3, user_code = '{$code}', user_last_notification = ".time()." WHERE user_id = {$result['user_id']}";
-                        $GLOBALS['db']->query($sql, mysql::NO_ROW);
-                        $content = str_replace(array('{ACCOUNT}', '{LINK}', '{DAYS}'), array($result['user_name'], 'http://hosting.olympe.in/valid?user='.$result['user_id'].'&code='.$code, 2), $email);
-                        mail($data['mailForwardingAddress'], '[Olympe] Validation de votre compte', $content, "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: Olympe <no-reply@olympe.in>\r\n");
-                }
+		else if( $result['user_status'] == 1 && $result['user_last_notification'] < time()-(3600*24*15) )
+		{
+			$sql = "UPDATE users SET user_status = 2, user_code = '{$code}', user_last_notification = ".time()." WHERE user_id = {$result['user_id']}";
+			$GLOBALS['db']->query($sql, mysql::NO_ROW);
+			$content = str_replace(array('{ACCOUNT}', '{LINK}', '{DAYS}'), array($result['user_name'], 'http://hosting.olympe.in/valid?user='.$result['user_id'].'&code='.$code, 15), $email);
+			mail($data['mailForwardingAddress'], '[Olympe] Validation de votre compte', $content, "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: Olympe <no-reply@olympe.in>\r\n");
+		}
+		else if( $result['user_status'] == 2 && $result['user_last_notification'] < time()-(3600*24*2) )
+		{
+			$sql = "UPDATE users SET user_status = 3, user_code = '{$code}', user_last_notification = ".time()." WHERE user_id = {$result['user_id']}";
+			$GLOBALS['db']->query($sql, mysql::NO_ROW);
+			$content = str_replace(array('{ACCOUNT}', '{LINK}', '{DAYS}'), array($result['user_name'], 'http://hosting.olympe.in/valid?user='.$result['user_id'].'&code='.$code, 2), $email);
+			mail($data['mailForwardingAddress'], '[Olympe] Validation de votre compte', $content, "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: Olympe <no-reply@olympe.in>\r\n");
+		}
 	}
 
-	if( $valid === true && $code !== null )
+	if( $valid === true )
 	{
 		if( $result['user_code'] == $code && strlen($code) > 4 )
 		{
@@ -227,7 +227,6 @@ L'&eacute;quipe Olympe";
 		}
 		else
 			throw new ApiException("Incorrect validation code", 403, "Incorrect validation code: {$code}");
-
 	}
 	
 	responder::send("OK");
