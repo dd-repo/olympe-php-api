@@ -114,11 +114,15 @@ $a->setExecute(function() use ($a)
 		
 		$sql = "SELECT user_id, user_name FROM users WHERE user_ldap = ".$GLOBALS['ldap']->getUIDfromDN($result['owner']);
 		$info = $GLOBALS['db']->query($sql);
+	
+		$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$result['homeDirectory']}'";
+		$storage = $GLOBALS['db']->query($sql);
 		
 		$s['name'] = $result['uid'];
 		$s['id'] = $result['uidNumber'];
 		$s['hostname'] = $result['associatedDomain'];
 		$s['homeDirectory'] = $result['homeDirectory'];
+		$s['size'] = $storage['storage_size'];
 		$s['cNAMERecord'] = $result['cNAMERecord'];
 		$s['aRecord'] = $result['aRecord'];
 		$s['user'] = array('id'=>$info['user_id'], 'name'=>$info['user_name']);
@@ -129,10 +133,14 @@ $a->setExecute(function() use ($a)
 	{
 		foreach( $result as $r )
 		{
+			$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
+			$storage = $GLOBALS['db']->query($sql);
+			
 			$s['name'] = $r['uid'];
 			$s['id'] = $r['uidNumber'];
 			$s['hostname'] = $r['associatedDomain'];
 			$s['homeDirectory'] = $r['homeDirectory'];
+			$s['size'] = $storage['storage_size'];
 			$s['cNAMERecord'] = $r['cNAMERecord'];
 			$s['aRecord'] = $r['aRecord'];
 			$s['user'] = array('id'=>'', 'name'=>'');
