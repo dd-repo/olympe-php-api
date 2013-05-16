@@ -123,7 +123,7 @@ function syncQuota($type, $user)
 	if( $count !== null && $count !== false )
 	{
 		$sql = "UPDATE IGNORE user_quota 
-			SET quota_used=LEAST({$count},quota_max)
+			SET quota_used={$count}
 			WHERE quota_id IN (SELECT q.quota_id FROM quotas q WHERE q.quota_name='".security::escape($type)."')
 			AND user_id IN (SELECT u.user_id FROM users u WHERE {$where})";
 			
