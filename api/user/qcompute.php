@@ -13,7 +13,7 @@ $a->addGrant(array('ACCESS', 'USER_SELECT'));
 $a->setReturn("OK");
 $a->addParam(array(
 	'name'=>array('user', 'user_id', 'id'),
-	'description'=>'The user id',
+	'description'=>'The user name or id',
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>50,
@@ -36,7 +36,11 @@ $a->setExecute(function() use ($a)
 	// GET USERS
 	// =================================
 	if( $user !== null )
-		$sql = "SELECT user_id FROM users u WHERE user_id = {$user}";
+	{
+		if( is_numeric($user) )
+			$sql = "SELECT user_id FROM users u WHERE user_id = {$user}";
+		else
+			$sql = "SELECT user_id FROM users u WHERE user_name = {$user}";
 	else
 		$sql = "SELECT user_id FROM users u WHERE user_id != 1";
 		
