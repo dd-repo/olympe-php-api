@@ -12,12 +12,12 @@ $a->setDescription("Compute user quotas");
 $a->addGrant(array('ACCESS', 'USER_SELECT'));
 $a->setReturn("OK");
 $a->addParam(array(
-	'name'=>array('type', 'quota', 'quota_type'),
-	'description'=>'The quota type.',
+	'name'=>array('user', 'user_id', 'id'),
+	'description'=>'The user id',
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>50,
-	'match'=>request::UPPER
+	'match'=>request::NUMBER
 	));
 
 $a->setExecute(function() use ($a)
@@ -30,12 +30,16 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET PARAMETERS
 	// =================================
-	$type = $a->getParam('type');
+	$user = $a->getParam('user');
 
 	// =================================
 	// GET USERS
-	// =================================	
-	$sql = "SELECT user_id FROM users u WHERE user_id != 1";
+	// =================================
+	if( $user !== null )
+		$sql = "SELECT user_id FROM users u WHERE user_id = {$user}";
+	else
+		$sql = "SELECT user_id FROM users u WHERE user_id != 1";
+		
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 
 	// =================================
