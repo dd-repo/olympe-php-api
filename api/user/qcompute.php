@@ -41,6 +41,7 @@ $a->setExecute(function() use ($a)
 			$sql = "SELECT user_id FROM users u WHERE user_id = {$user}";
 		else
 			$sql = "SELECT user_id FROM users u WHERE user_name = {$user}";
+	}
 	else
 		$sql = "SELECT user_id FROM users u WHERE user_id != 1";
 		
