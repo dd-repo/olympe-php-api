@@ -17,7 +17,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>50,
-	'match'=>request::NUMBER
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));
 
 $a->setExecute(function() use ($a)
