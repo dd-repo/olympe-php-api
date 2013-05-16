@@ -19,7 +19,15 @@ $a->addParam(array(
 	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));
-
+$a->addParam(array(
+	'name'=>array('cron'),
+	'description'=>'Cron is calling?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+	
 $a->setExecute(function() use ($a)
 {
 	// =================================
@@ -31,10 +39,32 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$user = $a->getParam('user');
+	$cron = $a->getParam('cron');
+
+	if( $cron == '1' || $cron == 'yes' || $cron == 'true' || $cron === true || $cron === 1 )
+		$cron = true;
+	else
+		$cron = false;
+		
+	// =================================
+	// HANDLE CRON
+	// =================================
+	if( $user === null && $cron )
+	{
+		// =================================
+		// RESET MAIL QUOTA
+		// =================================
+		$sql = "UPDATE user_quota SET quota_used = 0 where quota_id = 15";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	}
 
 	// =================================
 	// GET USERS
 	// =================================
+	if( $nombre%2 == 1 )
+		$limits = 'LIMIT 0,20000';
+	else
+		$limits = 'LIMIT 20000,20000';
 	if( $user !== null )
 	{
 		if( is_numeric($user) )
@@ -43,15 +73,9 @@ $a->setExecute(function() use ($a)
 			$sql = "SELECT user_id FROM users u WHERE user_name = '{$user}'";
 	}
 	else
-		$sql = "SELECT user_id FROM users u WHERE user_id != 1";
+		$sql = "SELECT user_id FROM users u WHERE user_id != 1 {$limits}";
 		
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
-
-	// =================================
-	// RESET MAIL QUOTA
-	// =================================
-	$sql = "UPDATE user_quota SET quota_used = 0 where quota_id = 15";
-	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	// =================================
 	// INIT QUOTAS
