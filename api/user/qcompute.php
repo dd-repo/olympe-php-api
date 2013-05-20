@@ -61,10 +61,12 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET USERS
 	// =================================
-	if( $nombre%2 == 1 )
+	$day = date('j');
+	if( $day%2 == 1 )
 		$limits = 'LIMIT 0,20000';
 	else
 		$limits = 'LIMIT 20000,20000';
+		
 	if( $user !== null )
 	{
 		if( is_numeric($user) )
