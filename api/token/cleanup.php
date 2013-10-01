@@ -21,7 +21,7 @@ if( security::hasGrants(array('ACCESS', 'TOKEN_CLEANUP')) )
 				LEFT JOIN grants k ON(k.grant_id = gk.grant_id OR k.grant_id = uk.grant_id)
 				) tmp ON(t.token_user = tmp.user_id AND tk.grant_id = tmp.grant_id)
 			WHERE tmp.grant_id IS NULL OR tmp.user_id IS NULL;";
-	$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	//$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
 	// CAUTION, THIS DOES NOT RETURN ANYTHING, IT SHOULD BE CALLED FROM ANOTHER PAGE ONLY !
 	// THOUGH IS DOESNT REALLY MATTER IF CALLED DIRECTLY AS THIS IS JUST SANITIZING.
