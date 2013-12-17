@@ -16,7 +16,7 @@ $a->setReturn(array(array(
 $a->addParam(array(
 	'name'=>array('name', 'user_name', 'username', 'login', 'user'),
 	'description'=>'The name of the target user.',
-	'optional'=>false,
+	'optional'=>true,
 	'minlength'=>3,
 	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
@@ -65,22 +65,28 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// CHECK IF LOCAL USER EXISTS
 	// =================================
-	$sql = "SELECT user_id FROM users WHERE user_name = '".security::escape($user)."'";
-	$result = $GLOBALS['db']->query($sql);
+	if( $user != null )
+	{
+		$sql = "SELECT user_id FROM users WHERE user_name = '".security::escape($user)."'";
+		$result = $GLOBALS['db']->query($sql);
 
-	if( $result !== null || $result['user_id'] !== null )
-		throw new ApiException("User already exists", 412, "Existing local user : " . $user);
-
+		if( $result !== null || $result['user_id'] !== null )
+			throw new ApiException("User already exists", 412, "Existing local user : " . $user);
+	}
+	
 	// =================================
 	// CHECK IF REMOTE USER EXISTS
 	// =================================
 	try
 	{
-		$dn = ldap::buildDN(ldap::USER, $GLOBALS['CONFIG']['DOMAIN'], $user);
-		$result = $GLOBALS['ldap']->read($dn);
+		if( $user != null )
+		{
+			$dn = ldap::buildDN(ldap::USER, $GLOBALS['CONFIG']['DOMAIN'], $user);
+			$result = $GLOBALS['ldap']->read($dn);
 		
-		// this should throw a 404 if the user does NOT exist
-		throw new ApiException("User already exists", 412, "Existing remote user : " . $user);
+			// this should throw a 404 if the user does NOT exist
+			throw new ApiException("User already exists", 412, "Existing remote user : " . $user);
+		}
 	}
 	catch(Exception $e)
 	{
@@ -96,7 +102,7 @@ $a->setExecute(function() use ($a)
 	$sql = "INSERT INTO register (register_user, register_email, register_code, register_date)
 			VALUES ('".security::escape($user)."', '".security::escape($mail)."', '{$code}', UNIX_TIMESTAMP())";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
-
+	
 	responder::send(array("code"=>$code));
 });
 

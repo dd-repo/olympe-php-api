@@ -101,11 +101,6 @@ $a->setExecute(function() use ($a)
 	
 	$result = $GLOBALS['ldap']->create($dn, $data);
 	
-	// =================================
-	// POST-CREATE SYSTEM ACTIONS
-	// =================================
-	$GLOBALS['system']->create(system::SUBDOMAIN, $data);
-	
 	responder::send(array("name"=>$subdomain, "id"=>$result['uidNumber']));
 });
 

@@ -134,7 +134,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$data['destination'] = $site_data['homeDirectory'] . '/' . $dir;
 	$data['site_data'] = $site_data;
-	$GLOBALS['system']->create(system::DOMAIN, $data);
+	$commands[] = "mkdir -p {$data['homeDirectory']} && rmdir {$data['homeDirectory']} && mkdir -p {$data['destination']} && ln -s {$data['destination']} {$data['homeDirectory']} && chown -h {$data['site_data']['uidNumber']}:{$data['site_data']['gidNumber']} {$data['homeDirectory']} && chown {$data['site_data']['uidNumber']} {$data['destination']} && cd {$data['homeDirectory']} && mkdir Users && chown {$data['site_data']['uidNumber']}:{$data['site_data']['gidNumber']} Users && chmod g+s Users && ln -s . www && chown -h {$data['site_data']['uidNumber']}:{$data['site_data']['gidNumber']} www";
+	$GLOBALS['system']->exec($commands);
 	
 	// =================================
 	// INSERT REMOTE CONTAINERS

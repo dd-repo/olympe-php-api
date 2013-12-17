@@ -125,7 +125,8 @@ $a->setExecute(function() use ($a)
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
 	$data['user_info'] = $user_info;
-	$GLOBALS['system']->create(system::SUBDOMAIN, $data);
+	$commands[] = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:33 {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']}";
+	$GLOBALS['system']->exec($commands);
 	
 	// =================================
 	// SYNC QUOTA

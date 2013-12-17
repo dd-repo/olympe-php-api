@@ -66,7 +66,8 @@ $a->setExecute(function() use ($a)
 			if( $s['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($s['dn']);
-				$GLOBALS['system']->delete(system::SUBDOMAIN, $s);
+				$commands[] = "rm -Rf {$s['homeDirectory']}";
+				$GLOBALS['system']->exec($commands);
 			}
 		}
 		
@@ -81,7 +82,8 @@ $a->setExecute(function() use ($a)
 			if( $d['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($d['dn']);
-				$GLOBALS['system']->delete(system::DOMAIN, $d);
+				$commands[] = "rm -Rf {$d['homeDirectory']}";
+				$GLOBALS['system']->exec($commands);
 			}
 		}
 
@@ -128,7 +130,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
-	$GLOBALS['system']->delete(system::USER, $data);
+	$commands[] = "rm -Rf {$data['homeDirectory']}";
+	$GLOBALS['system']->exec($commands);
 	
 	responder::send("OK");
 });

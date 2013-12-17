@@ -149,7 +149,8 @@ $a->setExecute(function() use ($a)
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
 	$data['domain'] = $GLOBALS['CONFIG']['DOMAIN'];
-	$GLOBALS['system']->create(system::USER, $data);
+	$commands[] = "mkdir -p {$data['homeDirectory']} && chown 33:{$data['gidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod g+s {$data['homeDirectory']}";
+	$GLOBALS['system']->exec($commands);
 	
 	responder::send(array("name"=>$user, "id"=>$uid));
 });
