@@ -89,7 +89,7 @@ $a->setExecute(function() use ($a)
 	if( $desc != null )
 	{
 		$sql = "UPDATE `databases` SET database_desc = '".security::escape($desc)."'";
-		$GLOBALS['db']->query($sql, mysql::NOW_ROW);
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
 	
 	// =================================
