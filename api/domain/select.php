@@ -124,6 +124,7 @@ $a->setExecute(function() use ($a)
 		$d['mxRecord'] = $result['mxRecord'];
 		$d['nSRecord'] = $result['nSRecord'];
 		$d['mailHost'] = $result['mailHost'];
+		$d['destination'] = $result['gecos'];
 		$d['user'] = array('id'=>$info['user_id'], 'name'=>$info['user_name']);
 		
 		$domains[] = $d;
@@ -153,6 +154,7 @@ $a->setExecute(function() use ($a)
 				$d['mxRecord'] = $r['mxRecord'];
 				$d['nSRecord'] = $r['nSRecord'];
 				$d['mailHost'] = $r['mailHost'];
+				$d['destination'] = $r['gecos'];
 				$d['user'] = array('id'=>'', 'name'=>'');
 				
 				foreach( $info as $i )
