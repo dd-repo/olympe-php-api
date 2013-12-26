@@ -73,6 +73,14 @@ $a->addParam(array(
 	'match'=>"(1|0|yes|no|true|false)"
 	));
 $a->addParam(array(
+	'name'=>array('search'),
+	'description'=>'Activate LIKE % % search.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
 	'name'=>array('order'),
 	'description'=>'Order return.',
 	'optional'=>true,
@@ -105,6 +113,7 @@ $a->setExecute(function() use ($a)
 	$count = $a->getParam('count');
 	$fast = $a->getParam('fast');
 	$quota = $a->getParam('quota');
+	$search = $a->getParam('search');
 	$order = $a->getParam('order');
 	$order_type = $a->getParam('order_type');
 	
@@ -124,6 +133,11 @@ $a->setExecute(function() use ($a)
 		$quota = true;
 	else
 		$quota = false;
+
+	if( $search == '1' || $search == 'yes' || $search == 'true' || $search === true || $search === 1 )
+		$search = true;
+	else
+		$search = false;
 	
 	// =================================
 	// PREPARE WHERE CLAUSE
@@ -142,7 +156,11 @@ $a->setExecute(function() use ($a)
 			else
 			{
 				if( strlen($where_name) == 0 ) $where_name = '';
-				$where_name .= " OR u.user_name LIKE '%".security::escape($u)."%'";
+				
+				if( $search === true )
+					$where_name .= " OR u.user_name LIKE '%".security::escape($u)."%'";
+				else
+					$where_name .= " OR u.user_name = '".security::escape($u)."'";
 			}
 		}
 		if( strlen($where_id) > 0 ) $where_id .= ')';
