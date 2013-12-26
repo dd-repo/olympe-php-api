@@ -107,19 +107,6 @@ $a->setExecute(function() use ($a)
 	}
 
 	// =================================
-	// INSERT REMOTE DOMAIN
-	// =================================
-	$dn = ldap::buildDN(ldap::DOMAIN, $domain);
-	$split = explode('.', $domain);
-	$name = $split[0];
-	$params = array('dn' => $dn, 'uid' => $name, 'domain' => $domain, 'owner' => $user_dn);
-	
-	$handler = new domain();
-	$data = $handler->build($params);
-	
-	$GLOBALS['ldap']->create($dn, $data);
-	
-	// =================================
 	// GET SITE INFO
 	// =================================
 	if( is_numeric($site) )
@@ -130,9 +117,25 @@ $a->setExecute(function() use ($a)
 	$site_data = $GLOBALS['ldap']->read($dn_site);
 	
 	// =================================
+	// INSERT REMOTE DOMAIN
+	// =================================
+	$dn = ldap::buildDN(ldap::DOMAIN, $domain);
+	$split = explode('.', $domain);
+	$name = $split[0];
+	$destination = $site_data['homeDirectory'] . '/' . $dir;
+	$params = array('dn' => $dn, 'uid' => $name, 'domain' => $domain, 'owner' => $user_dn, 'gecos' => $destination);
+	
+	$handler = new domain();
+	$data = $handler->build($params);
+	
+	$GLOBALS['ldap']->create($dn, $data);
+	
+
+	
+	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$data['destination'] = $site_data['homeDirectory'] . '/' . $dir;
+	$data['destination'] = $destination;
 	$data['site_data'] = $site_data;
 	$commands[] = "mkdir -p {$data['homeDirectory']} && rmdir {$data['homeDirectory']} && mkdir -p {$data['destination']} && ln -s {$data['destination']} {$data['homeDirectory']} && chown -h {$data['site_data']['uidNumber']}:{$data['site_data']['gidNumber']} {$data['homeDirectory']} && chown {$data['site_data']['uidNumber']} {$data['destination']} && cd {$data['homeDirectory']} && mkdir Users && chown {$data['site_data']['uidNumber']}:{$data['site_data']['gidNumber']} Users && chmod g+s Users && ln -s . www && chown -h {$data['site_data']['uidNumber']}:{$data['site_data']['gidNumber']} www";
 	$GLOBALS['system']->exec($commands);
