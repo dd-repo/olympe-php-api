@@ -78,7 +78,7 @@ $a->setExecute(function() use ($a)
 			mysql_query("DROP USER '{$database}'", $link);
 			mysql_query("DROP DATABASE `{$database}`", $link);
 			mysql_close($link);
-		break;	
+		break;
 	}
 	
 	// =================================
