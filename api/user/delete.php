@@ -59,7 +59,8 @@ $a->setExecute(function() use ($a)
 	
 	$commands[] = "mkdir -p /tmp/{$data['uid']} && ldapsearch -h ldap.olympe.in -x -b ou=Users,dc=olympe,dc=in,dc=dns -s sub uid={$data['uid']} > /tmp/{$data['uid']}/account.ldif";
 	$GLOBALS['system']->exec($commands);
-
+	$commands[] = array();
+	
 	// time until backuping
 	sleep(2);
 	
@@ -78,6 +79,7 @@ $a->setExecute(function() use ($a)
 				$GLOBALS['ldap']->delete($s['dn']);
 				$commands[] = "mv {$s['homeDirectory']} /tmp/{$data['uid']}/";
 				$GLOBALS['system']->exec($commands);
+				$commands[] = array();
 			}
 		}
 		
@@ -94,6 +96,7 @@ $a->setExecute(function() use ($a)
 				$GLOBALS['ldap']->delete($d['dn']);
 				$commands[] = "rm -Rf {$d['homeDirectory']}";
 				$GLOBALS['system']->exec($commands);
+				$commands[] = array();
 			}
 		}
 
@@ -110,6 +113,7 @@ $a->setExecute(function() use ($a)
 				case 'mysql':
 					$commands = "mysqldump -h {$GLOBALS['CONFIG']['MYSQL_ROOT_HOST']} -u {$GLOBALS['CONFIG']['MYSQL_ROOT_USER']} -p{$GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']} {$database} | gzip > /tmp/{$data['uid']}/{$database}.sql && mysql -h {$GLOBALS['CONFIG']['MYSQL_ROOT_HOST']} -u {$GLOBALS['CONFIG']['MYSQL_ROOT_USER']} -p{$GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']} -e \"drop database {$database}\"";
 					$GLOBALS['system']->exec($commands);
+					$commands[] = array();
 					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
 					mysql_query("DROP USER '{$database}'", $link);
 					mysql_close($link);
@@ -145,6 +149,7 @@ $a->setExecute(function() use ($a)
 	$commands[] = "rm -Rf {$data['homeDirectory']}";
 	$commands[] = "sleep 500 && cd /tmp && tar cvfz /dns/tm/sys/var/lib/backup/deleted/{$data['uid']}-{$date}.tgz {$data['uid']} && rm -Rf /tmp/{$data['uid']}";
 	$GLOBALS['system']->exec($commands);
+	$commands[] = array();
 	
 	responder::send("OK");
 });
