@@ -111,7 +111,7 @@ $a->setExecute(function() use ($a)
 			{
 				case 'mysql':
 					$commands = array();
-					$commands = "mysqldump -h {$GLOBALS['CONFIG']['MYSQL_ROOT_HOST']} -u {$GLOBALS['CONFIG']['MYSQL_ROOT_USER']} -p{$GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']} {$database} | gzip > /tmp/{$data['uid']}/{$database}.sql && mysql -h {$GLOBALS['CONFIG']['MYSQL_ROOT_HOST']} -u {$GLOBALS['CONFIG']['MYSQL_ROOT_USER']} -p{$GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']} -e \"drop database {$database}\"";
+					$commands = "mysqldump -h {$GLOBALS['CONFIG']['MYSQL_ROOT_HOST']} -u {$GLOBALS['CONFIG']['MYSQL_ROOT_USER']} -p{$GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']} {$database} | gzip > /tmp/{$data['uid']}/{$database}.sql.tgz && mysql -h {$GLOBALS['CONFIG']['MYSQL_ROOT_HOST']} -u {$GLOBALS['CONFIG']['MYSQL_ROOT_USER']} -p{$GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']} -e \"drop database {$database}\"";
 					$GLOBALS['system']->exec($commands);
 					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
 					mysql_query("DROP USER '{$database}'", $link);
