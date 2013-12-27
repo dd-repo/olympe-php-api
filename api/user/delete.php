@@ -56,7 +56,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// BACKUP USER
 	// =================================	
-	$commands[] = array();
+	$commands = array();
 	$commands[] = "mkdir -p /tmp/{$data['uid']} && ldapsearch -h ldap.olympe.in -x -b ou=Users,dc=olympe,dc=in,dc=dns -s sub uid={$data['uid']} > /tmp/{$data['uid']}/account.ldif";
 	$GLOBALS['system']->exec($commands);
 	
@@ -76,7 +76,7 @@ $a->setExecute(function() use ($a)
 			if( $s['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($s['dn']);
-				$commands[] = array();
+				$commands = array();
 				$commands[] = "mv {$s['homeDirectory']} /tmp/{$data['uid']}/";
 				$GLOBALS['system']->exec($commands);
 			}
@@ -93,7 +93,7 @@ $a->setExecute(function() use ($a)
 			if( $d['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($d['dn']);
-				$commands[] = array();
+				$commands = array();
 				$commands[] = "rm -Rf {$d['homeDirectory']}";
 				$GLOBALS['system']->exec($commands);
 			}
@@ -110,7 +110,7 @@ $a->setExecute(function() use ($a)
 			switch( $result['database_type'] )
 			{
 				case 'mysql':
-					$commands[] = array();
+					$commands = array();
 					$commands = "mysqldump -h {$GLOBALS['CONFIG']['MYSQL_ROOT_HOST']} -u {$GLOBALS['CONFIG']['MYSQL_ROOT_USER']} -p{$GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']} {$database} | gzip > /tmp/{$data['uid']}/{$database}.sql && mysql -h {$GLOBALS['CONFIG']['MYSQL_ROOT_HOST']} -u {$GLOBALS['CONFIG']['MYSQL_ROOT_USER']} -p{$GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']} -e \"drop database {$database}\"";
 					$GLOBALS['system']->exec($commands);
 					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
@@ -145,7 +145,7 @@ $a->setExecute(function() use ($a)
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
 	$date = date('YmdHis');
-	$commands[] = array();
+	$commands = array();
 	$commands[] = "rm -Rf {$data['homeDirectory']}";
 	$commands[] = "sleep 500 && cd /tmp && tar cvfz /dns/tm/sys/var/lib/backup/deleted/{$data['uid']}-{$date}.tgz {$data['uid']} && rm -Rf /tmp/{$data['uid']}";
 	$GLOBALS['system']->exec($commands);
