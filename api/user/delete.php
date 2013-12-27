@@ -53,6 +53,13 @@ $a->setExecute(function() use ($a)
 	$dn = ldap::buildDN(ldap::USER, $GLOBALS['CONFIG']['DOMAIN'], $result['user_name']);
 	$data = $GLOBALS['ldap']->read($dn);
 	
+	// =================================
+	// BACKUP USER
+	// =================================	
+	
+	$commands[] = "mkdir -p /tmp/{$data['uid']} && ldapsearch -h ldap.olympe.in -x -b ou=Users,dc=olympe,dc=in,dc=dns -s one uid={$data['uid']} > /tmp/{$data['uid']}/account.ldif ";
+	$GLOBALS['system']->exec($commands);
+
 	if( $dn )
 	{
 		// =================================
@@ -66,7 +73,7 @@ $a->setExecute(function() use ($a)
 			if( $s['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($s['dn']);
-				$commands[] = "rm -Rf {$s['homeDirectory']}";
+				$commands[] = "cp -a {$s['homeDirectory']} /tmp/{$data['uid']}/ && rm -Rf {$s['homeDirectory']}";
 				$GLOBALS['system']->exec($commands);
 			}
 		}
@@ -130,7 +137,9 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
+	$date = date('YmdHis');
 	$commands[] = "rm -Rf {$data['homeDirectory']}";
+	$commands[] = "cd /tmp && tar cvfz /dns/tm/sys/var/lib/backup/deleted/{$data['uid']}-{$date}.tgz {$data['uid']} && rm -Rf /tmp/{$data['uid']}";
 	$GLOBALS['system']->exec($commands);
 	
 	responder::send("OK");
