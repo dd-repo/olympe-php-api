@@ -147,7 +147,7 @@ $a->setExecute(function() use ($a)
 	$date = date('YmdHis');
 	$commands = array();
 	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	$commands[] = "sleep 500 && cd /tmp && tar cvfz /dns/tm/sys/var/lib/backup/deleted/{$data['uid']}-{$date}.tgz {$data['uid']} && rm -Rf /tmp/{$data['uid']}";
+	$commands[] = "sleep 200; cd /tmp && tar cvfz /dns/tm/sys/var/lib/backup/deleted/{$data['uid']}-{$date}.tgz {$data['uid']}; rm -Rf /tmp/{$data['uid']}";
 	$GLOBALS['system']->exec($commands);
 	
 	responder::send("OK");
