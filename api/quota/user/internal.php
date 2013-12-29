@@ -74,7 +74,7 @@ function syncQuota($type, $user)
 			if( $userdata == null || $userdata['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 				
-			$sql = "SELECT quota_max FROM user_quota WHERE quota_id = 13 AND quota_user = {$userdata['user_id']}";
+			$sql = "SELECT quota_max FROM user_quota WHERE quota_id = 13 AND user_id = {$userdata['user_id']}";
 			$quotadata = $GLOBALS['db']->query($sql);
 			
 			$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
