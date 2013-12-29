@@ -68,21 +68,25 @@ function syncQuota($type, $user)
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 			$count = $result['c'];
 			break;
-		case 'BYTES':
+		case 'BYTES':			
 			$sql = "SELECT user_ldap, user_id FROM users u WHERE {$where}";
 			$userdata = $GLOBALS['db']->query($sql);
 			if( $userdata == null || $userdata['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+				
+			$sql = "SELECT quota_max FROM user_quota WHERE quota_id = 13 AND quota_user = {$userdata['user_id']}";
+			$quotadata = $GLOBALS['db']->query($sql);
+			
 			$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
 			$usage = 0;
-			$usage = $GLOBALS['system']->getquota($userdata['user_ldap']);
+			$usage = $GLOBALS['system']->getquota($userdata['user_ldap'], 'group', $quotadata['quota_max']);
 			$usage = round($usage/1024);
 			
 			$sites = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $GLOBALS['CONFIG']['DOMAIN']), ldap::buildFilter(ldap::SUBDOMAIN, "(owner={$user_dn})"));
 			foreach( $sites as $s )
 			{
 				$u = 0;
-				$u = $GLOBALS['system']->getquota($s['uidNumber'], 'user');
+				$u = $GLOBALS['system']->getquota($s['uidNumber'], 'user', $quotadata['quota_max']);
 				$u = round($u/1024);
 				
 				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '{$s['homeDirectory']}'";
@@ -100,7 +104,7 @@ function syncQuota($type, $user)
 			foreach( $users as $user )
 			{
 				$u = 0;
-				$u = $GLOBALS['system']->getquota($user['uidNumber'], 'user');
+				$u = $GLOBALS['system']->getquota($user['uidNumber'], 'user', $quotadata['quota_max']);
 				$u = round($u/1024);
 				
 				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '{$user['homeDirectory']}'";
