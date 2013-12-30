@@ -55,7 +55,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$where = '';
 	if( $id !== null )
-		$where .= " AND news_id = '".secusity::escape($id)."'";
+		$where .= " AND news_id = '".security::escape($id)."'";
 
 	// =================================
 	// SELECT RECORDS
