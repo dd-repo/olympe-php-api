@@ -33,6 +33,14 @@ $a->addParam(array(
 	'maxlength'=>11,
 	'match'=>request::NUMBER
 	));
+$a->addParam(array(
+	'name'=>array('language', 'lang', 'news_language'),
+	'description'=>'The news language.',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>2,
+	'match'=>request::UPPER
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -46,6 +54,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$id = $a->getParam('id');
 	$limit = $a->getParam('limit');
+	$language = $a->getParam('language');
 	
 	if( $limit === null )
 		$limit = 5;
@@ -56,7 +65,9 @@ $a->setExecute(function() use ($a)
 	$where = '';
 	if( $id !== null )
 		$where .= " AND news_id = '".security::escape($id)."'";
-
+	if( $language !== null )
+		$where .= " AND news_language = '".security::escape($language)."'";
+		
 	// =================================
 	// SELECT RECORDS
 	// =================================
