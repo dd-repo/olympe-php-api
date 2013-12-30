@@ -21,11 +21,19 @@ $a->addParam(array(
 	'name'=>array('id', 'news', 'news_id'),
 	'description'=>'The id of the news',
 	'optional'=>true,
-	'minlength'=>3,
-	'maxlength'=>100,
+	'minlength'=>1,
+	'maxlength'=>11,
 	'match'=>request::NUMBER
 	));
-
+$a->addParam(array(
+	'name'=>array('limit'),
+	'description'=>'Limit the result',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>11,
+	'match'=>request::NUMBER
+	));
+	
 $a->setExecute(function() use ($a)
 {
 	// =================================
@@ -37,7 +45,11 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$id = $a->getParam('id');
-
+	$limit = $a->getParam('limit');
+	
+	if( $limit === null )
+		$limit = 5;
+	
 	// =================================
 	// PREPARE WHERE CLAUSE
 	// =================================
@@ -48,7 +60,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT RECORDS
 	// =================================
-	$sql = "SELECT * FROM `news` WHERE true {$where}";
+	$sql = "SELECT * FROM `news` WHERE true {$where} DESC LIMIT 0,{$limit}";
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 
 	// =================================
