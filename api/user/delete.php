@@ -52,17 +52,7 @@ $a->setExecute(function() use ($a)
 	// =================================	
 	$dn = ldap::buildDN(ldap::USER, $GLOBALS['CONFIG']['DOMAIN'], $result['user_name']);
 	$data = $GLOBALS['ldap']->read($dn);
-	
-	// =================================
-	// BACKUP USER
-	// =================================	
-	$commands = array();
-	$commands[] = "mkdir -p /tmp/{$data['uid']} && ldapsearch -h ldap.olympe.in -x -b ou=Users,dc=olympe,dc=in,dc=dns -s sub uid={$data['uid']} > /tmp/{$data['uid']}/account.ldif";
-	$GLOBALS['system']->exec($commands);
-	
-	// time until backuping
-	sleep(2);
-	
+
 	if( $dn )
 	{
 		// =================================
@@ -77,7 +67,7 @@ $a->setExecute(function() use ($a)
 			{
 				$GLOBALS['ldap']->delete($s['dn']);
 				$commands = array();
-				$commands[] = "mv {$s['homeDirectory']} /tmp/{$data['uid']}/";
+				$commands[] = "rm -Rf {$s['homeDirectory']}";
 				$GLOBALS['system']->exec($commands);
 			}
 		}
@@ -110,10 +100,8 @@ $a->setExecute(function() use ($a)
 			switch( $result['database_type'] )
 			{
 				case 'mysql':
-					$commands = array();
-					$commands = "mysqldump -h {$GLOBALS['CONFIG']['MYSQL_ROOT_HOST']} -u {$GLOBALS['CONFIG']['MYSQL_ROOT_USER']} -p{$GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']} {$database} | gzip > /tmp/{$data['uid']}/{$database}.sql.tgz && mysql -h {$GLOBALS['CONFIG']['MYSQL_ROOT_HOST']} -u {$GLOBALS['CONFIG']['MYSQL_ROOT_USER']} -p{$GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']} -e \"drop database {$database}\"";
-					$GLOBALS['system']->exec($commands);
 					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+					mysql_query("DROP DATABASE '{$database}'", $link);
 					mysql_query("DROP USER '{$database}'", $link);
 					mysql_close($link);
 				break;	
@@ -147,7 +135,6 @@ $a->setExecute(function() use ($a)
 	$date = date('YmdHis');
 	$commands = array();
 	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	$commands[] = "sleep 200; cd /tmp && tar cvfz /dns/tm/sys/var/lib/backup/deleted/{$data['uid']}-{$date}.tgz {$data['uid']}; rm -Rf /tmp/{$data['uid']}";
 	$GLOBALS['system']->exec($commands);
 	
 	responder::send("OK");
