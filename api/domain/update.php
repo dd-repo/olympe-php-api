@@ -26,7 +26,7 @@ $a->addParam(array(
 	'description'=>'The A Record of the domain.',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>20,
+	'maxlength'=>100,
 	'match'=>request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
@@ -40,6 +40,22 @@ $a->addParam(array(
 $a->addParam(array(
 	'name'=>array('mx2'),
 	'description'=>'The MX 2 Record of the domain.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>300,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT
+	));
+$a->addParam(array(
+	'name'=>array('mx3'),
+	'description'=>'The MX 3 Record of the domain.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>300,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT
+	));
+$a->addParam(array(
+	'name'=>array('mx4'),
+	'description'=>'The MX 4 Record of the domain.',
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>300,
@@ -120,23 +136,22 @@ $a->setExecute(function() use ($a)
 	// UPDATE REMOTE DOMAIN
 	// =================================
 	$params = array();
-	if( $mx1 !== null  && $mx2 === null )
+	if( $mx1 !== null && $mx2 !== null && $mx3 !== null && $mx4 !== null )
 	{
 		$params['mXRecord'][0] = '10 ' . $mx1;
-		$params['mXRecord'][1] = '20 ' . $result['mXRecord'][1];
-	}
-	else if( $mx2 !== null && $mx1 === null )
-	{
-		$params['mXRecord'][0] = '10 ' . $result['mXRecord'][0];
-		$params['mXRecord'][1] = '20 ' . $mx2;	
-	}
-	else if( $mx1 !== null  && $mx2 !== null )
-	{
-		$params['mXRecord'][0] = '10 ' . $mx1;
-		$params['mXRecord'][1] = '20 ' . $mx2;	
+		$params['mXRecord'][1] = '20 ' . $mx2;
+		$params['mXRecord'][2] = '30 ' . $mx3;
+		$params['mXRecord'][3] = '40 ' . $mx4;	
 	}
 	
-	if( $arecord !== null )
+	if( $arecord !== null && strpos($arecord, ',') !== false )
+	{
+		$records = explode(',', $arecord);
+		$params['aRecord'] = array();
+		foreach( $records as $r )
+			$params['aRecord'][] = $r;
+	}
+	else if( $arecord !== null )
 		$params['aRecord'] = $arecord;
 	
 	if( $mailer !== null )
