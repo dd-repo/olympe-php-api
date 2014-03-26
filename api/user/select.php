@@ -106,10 +106,10 @@ $a->addParam(array(
 	));
 $a->addParam(array(
 	'name'=>array('limit'),
-	'description'=>'From subscription date.',
+	'description'=>'Limit response.',
 	'optional'=>true,
-	'minlength'=>0,
-	'maxlength'=>30,
+	'minlength'=>1,
+	'maxlength'=>11,
 	'match'=>request::NUMBER
 	));
 
@@ -156,6 +156,9 @@ $a->setExecute(function() use ($a)
 	else
 		$search = false;
 	
+	if( $limit === null )
+		$limit = 100;
+		
 	// =================================
 	// SEARCH IN LDAP
 	// =================================	
@@ -232,7 +235,8 @@ $a->setExecute(function() use ($a)
 				LEFT JOIN user_quota uq ON(u.user_id = uq.user_id)
 				LEFT JOIN quotas q ON(uq.quota_id = q.quota_id)
 				WHERE false {$where_name} {$where_id} {$where}
-				ORDER BY {$order} {$order_type}";
+				ORDER BY {$order} {$order_type}
+				LIMIT 0,{$limit}";
 	}
 	else
 	{
