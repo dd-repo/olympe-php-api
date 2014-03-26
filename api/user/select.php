@@ -104,6 +104,14 @@ $a->addParam(array(
 	'maxlength'=>4,
 	'match'=>"(ASC|DESC)"
 	));
+$a->addParam(array(
+	'name'=>array('limit'),
+	'description'=>'From subscription date.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>30,
+	'match'=>request::NUMBER
+	));
 
 $a->setExecute(function() use ($a)
 {
