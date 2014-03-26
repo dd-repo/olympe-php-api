@@ -94,6 +94,8 @@ $a->setExecute(function() use ($a)
 	$arecord = $a->getParam('arecord');
 	$mx1 = $a->getParam('mx1');
 	$mx2 = $a->getParam('mx2');
+	$mx3 = $a->getParam('mx3');
+	$mx4 = $a->getParam('mx4');
 	$mailer = $a->getParam('mailer');
 	$user = $a->getParam('user');
 
