@@ -197,6 +197,12 @@ $a->setExecute(function() use ($a)
 	else
 		$order = 'u.user_name';
 	
+	$where = '';
+	if( $from !== null )
+		$where .= " AND user_date > {$from}";
+	if( $to !== null )
+		$where .= " AND user_date < {$to}";
+	
 	if( $order_type === null )
 		$order_type = 'ASC';
 	
@@ -217,7 +223,7 @@ $a->setExecute(function() use ($a)
 				FROM users u
 				LEFT JOIN user_quota uq ON(u.user_id = uq.user_id)
 				LEFT JOIN quotas q ON(uq.quota_id = q.quota_id)
-				WHERE false {$where_name} {$where_id}
+				WHERE false {$where_name} {$where_id} {$where}
 				ORDER BY {$order} {$order_type}";
 	}
 	else
@@ -275,6 +281,7 @@ $a->setExecute(function() use ($a)
 				
 				$users[$i]['firstname'] = $result['givenName'];
 				$users[$i]['lastname'] = $result['sn'];
+				$users[$i]['language'] = $result['gecos'];
 				$users[$i]['ip'] = $result['ipHostNumber'];
 				$users[$i]['address'] = $result['postalAddress'];
 				$users[$i]['description'] = $result['description'];

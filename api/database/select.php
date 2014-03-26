@@ -96,9 +96,13 @@ $a->setExecute(function() use ($a)
 	$databases = array();
 	foreach( $result as $r )
 	{
+		$sql = "SELECT storage_size FROM storages WHERE storage_path = '/databases/{$r['database_name']}'";
+		$storage = $GLOBALS['db']->query($sql);
+		
 		$d['name'] = $r['database_name'];
 		$d['type'] = $r['database_type'];
 		$d['desc'] = $r['database_desc'];
+		$d['size'] = $storage['storage_size'];
 		$d['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name']);
 		
 		$databases[] = $d;		

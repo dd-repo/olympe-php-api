@@ -92,6 +92,7 @@ $i->addEntry('subdomain', array('subdomain', 'subdomains'));
 $i->addEntry('account', array('account', 'accounts'));
 $i->addEntry('database', array('database', 'databases'));
 $i->addEntry('news', array('news'));
+$i->addEntry('message', array('message', 'messages'));
 $i->addEntry('test', array('test', 'hello'));
 
 return $i;

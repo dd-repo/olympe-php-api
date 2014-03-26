@@ -62,7 +62,23 @@ $a->addParam(array(
 	'match'=>request::PHRASE|request::SPECIAL|request::PUNCT
 	));
 $a->addParam(array(
-	'name'=>array('valid', 'validate'),
+	'name'=>array('lastname', 'sn', 'user_lastname', 'user_sn', 'user_last_name'),
+	'description'=>'The last name of the user.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::PHRASE
+	));
+$a->addParam(array(
+	'name'=>array('language', 'lang'),
+	'description'=>'The user language.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>2,
+	'match'=>request::UPPER
+	));
+$a->addParam(array(
+	'name'=>array('notif', 'notification'),
 	'description'=>'The user status.',
 	'optional'=>true,
 	'minlength'=>1,
@@ -70,21 +86,13 @@ $a->addParam(array(
 	'match'=>"(1|0|yes|no|true|false)"
 	));
 $a->addParam(array(
-        'name'=>array('notif', 'notification'),
-        'description'=>'The user status.',
-        'optional'=>true,
-        'minlength'=>1,
-        'maxlength'=>10,
-	'match'=>"(1|0|yes|no|true|false)"
-        ));
-$a->addParam(array(
-        'name'=>array('code', 'user_code'),
-        'description'=>'The user code.',
-        'optional'=>true,
-        'minlength'=>8,
-        'maxlength'=>8,
+	'name'=>array('code', 'user_code'),
+	'description'=>'The user code.',
+	'optional'=>true,
+	'minlength'=>8,
+	'maxlength'=>8,
 	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
-        ));
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -103,6 +111,7 @@ $a->setExecute(function() use ($a)
 	$mail = $a->getParam('mail');
 	$address = $a->getParam('address');
 	$valid = $a->getParam('valid');
+	$language = $a->getParam('language');
 	$notif = $a->getParam('notif');
 	$code = $a->getParam('code');
 	
@@ -152,7 +161,9 @@ $a->setExecute(function() use ($a)
 		$params['mailForwardingAddress'] = $mail;
 	if( $address !== null )
 		$params['postalAddress'] = $address;	
-	
+	if( $language !== null )
+		$params['gecos'] = $language;	
+		
 	$GLOBALS['ldap']->replace($dn, $params);
 		
 	try
