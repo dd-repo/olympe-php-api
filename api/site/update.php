@@ -38,13 +38,29 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
-	'name'=>array('pass', 'password', 'account_password', 'account_pass'),
-	'description'=>'The password of the account.',
+	'name'=>array('pass', 'password', 'site_password', 'site_pass'),
+	'description'=>'The password of the site.',
 	'optional'=>true,
 	'minlength'=>3,
 	'maxlength'=>50,
 	'match'=>request::PHRASE|request::SPECIAL,
 	'action'=>true
+	));
+$a->addParam(array(
+	'name'=>array('directory'),
+	'description'=>'Whether or not to include this site in the global directory?.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
+	'name'=>array('description', 'site_description'),
+	'description'=>'The description of the site.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>500,
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
@@ -70,7 +86,12 @@ $a->setExecute(function() use ($a)
 	$arecord = $a->getParam('arecord');
 	$cnamerecord = $a->getParam('cnamerecord');
 	$pass = $a->getParam('pass');
+	$directory = $a->getParam('directory');
+	$description = $a->getParam('description');
 	$user = $a->getParam('user');
+	
+	if( $directory == '1' || $directory == 'yes' || $directory == 'true' || $directory === true || $directory === 1 ) $directory = true;
+	else if( $directory == '0' || $directory == 'no' || $directory == 'false' || $directory === false || $directory === 0 ) $directory = false;
 	
 	// =================================
 	// GET REMOTE INFO
@@ -111,9 +132,16 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// UPDATE REMOTE SITE
 	// =================================
+	if( $directory !== null && $directory === true )
+		$params['gecos'] = 1;
+	else if( $directory !== null )
+		$params['gecos'] = 0;
+	
 	if( $pass !== null )
 		$params['userPassword'] = $pass;
-
+	if( $description !== null )
+		$params['description'] = $description;
+	
 	if( $arecord !== null )
 	{
 		$params = array('aRecord'=>$arecord);

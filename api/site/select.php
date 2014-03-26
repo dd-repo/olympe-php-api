@@ -125,6 +125,8 @@ $a->setExecute(function() use ($a)
 		$s['size'] = $storage['storage_size'];
 		$s['cNAMERecord'] = $result['cNAMERecord'];
 		$s['aRecord'] = $result['aRecord'];
+		$s['description'] = $result['description'];
+		$s['directory'] = $result['gecos'];
 		$s['user'] = array('id'=>$info['user_id'], 'name'=>$info['user_name']);
 		
 		$sites[] = $s;
@@ -143,6 +145,8 @@ $a->setExecute(function() use ($a)
 			$s['size'] = $storage['storage_size'];
 			$s['cNAMERecord'] = $r['cNAMERecord'];
 			$s['aRecord'] = $r['aRecord'];
+			$s['description'] = $r['description'];
+			$s['directory'] = $r['gecos'];
 			$s['user'] = array('id'=>'', 'name'=>'');
 			
 			$sites[] = $s;	

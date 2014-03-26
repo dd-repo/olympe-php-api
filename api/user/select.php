@@ -33,6 +33,14 @@ $a->addParam(array(
 	'action'=>true
 	));
 $a->addParam(array(
+	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
+	'description'=>'The email of the user.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>150,
+	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
+	));
+$a->addParam(array(
 	'name'=>array('from'),
 	'description'=>'From subscription date.',
 	'optional'=>true,
@@ -108,6 +116,7 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$user = $a->getParam('user');
+	$mail = $a->getParam('mail');
 	$from = $a->getParam('from');
 	$to = $a->getParam('to');
 	$count = $a->getParam('count');
@@ -139,6 +148,21 @@ $a->setExecute(function() use ($a)
 	else
 		$search = false;
 	
+	// =================================
+	// SEARCH IN LDAP
+	// =================================	
+	if( $search === true && $user === null )
+	{
+		if( $mail !== null )
+		{
+			$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::USER, "(mailForwardingAddress=*{$mail})*"));
+		
+			$user = array();
+			foreach( $result as $r )
+				$user[] = $r['uid'];
+		}
+	}
+
 	// =================================
 	// PREPARE WHERE CLAUSE
 	// =================================
