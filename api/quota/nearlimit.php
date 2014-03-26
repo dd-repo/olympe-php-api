@@ -52,7 +52,8 @@ $a->setExecute(function() use ($a)
 			FROM users u
 			LEFT JOIN user_quota uq ON(u.user_id = uq.user_id)
 			LEFT JOIN quotas q ON(uq.quota_id = q.quota_id)
-			WHERE {$where}";
+			WHERE {$where}
+			ORDER BY uq.quota_used DESC";
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 
 	// =================================
