@@ -132,7 +132,8 @@ function syncQuota($type, $user)
 					$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
 				else
 					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/databases/{$d['database_name']}', {$u})";
-					
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);
+				
 				$usage = $usage+$u;
 			}
 			
