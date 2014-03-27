@@ -168,9 +168,8 @@ $a->setExecute(function() use ($a)
 		{
 			$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::USER, "(mailForwardingAddress={$mail})"));
 		
-			$user = array();
-			foreach( $result as $r )
-				$user[] = $r['uid'];
+			print_r($result);
+			exit();
 		}
 	}
 
