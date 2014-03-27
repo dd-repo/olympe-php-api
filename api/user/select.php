@@ -162,16 +162,13 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SEARCH IN LDAP
 	// =================================	
-	if( $search === true && count($user) == 0 )
+	if( $mail !== null && count($user) == 0 )
 	{
-		if( $mail !== null )
-		{
-			$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::USER, "(mailForwardingAddress={$mail})"));
+		$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::USER, "(mailForwardingAddress={$mail})"));
 		
-			$user = array();
-			foreach( $result as $r )
-				$user[] = $r['uid'];
-		}
+		$user = array();
+		foreach( $result as $r )
+			$user[] = $r['uid'];
 	}
 
 	// =================================
