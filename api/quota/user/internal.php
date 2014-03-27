@@ -123,7 +123,7 @@ function syncQuota($type, $user)
 			foreach( $databases as $d )
 			{
 				$u = 0;
-				$u = $GLOBALS['system']->getdatabasesize($d['database_name']);
+				$u = $GLOBALS['system']->getdatabasesize($d['database_name'], $d['database_type']);
 				$u = round($u/1024);
 				
 				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/databases/{$d['database_name']}'";
