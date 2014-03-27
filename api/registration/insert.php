@@ -52,6 +52,14 @@ $a->setExecute(function() use ($a)
 		throw new ApiException("Pending request already exists", 412, "Existing pending request for : {$user} : {$mail}");
 
 	// =================================
+	// CHECK FOR USER WITH THE SAME EMAIL
+	// =================================		
+	$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::USER, "(mailForwardingAddress={$mail})"));
+	
+	if( count($result) > 0 )
+		throw new ApiException("Email already exists", 412, "Existing email : {$mail}");
+	
+	// =================================
 	// INSERT PENDING REQUEST
 	// =================================
 	$code = md5($user.$email.time());
