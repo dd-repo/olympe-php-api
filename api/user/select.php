@@ -133,6 +133,7 @@ $a->setExecute(function() use ($a)
 	$search = $a->getParam('search');
 	$order = $a->getParam('order');
 	$order_type = $a->getParam('order_type');
+	$limit = $a->getParam('limit');
 	
 	// =================================
 	// PROCESS PARAMETERS
@@ -240,7 +241,8 @@ $a->setExecute(function() use ($a)
 		$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_date, u.user_last_notification, u.user_status
 				FROM users u
 				WHERE false {$where_name} {$where_id} {$where}
-				ORDER BY {$order} {$order_type}";
+				ORDER BY {$order} {$order_type}
+				LIMIT 0,{$limit}";
 	}
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 			
