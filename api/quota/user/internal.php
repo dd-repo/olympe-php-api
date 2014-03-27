@@ -118,6 +118,24 @@ function syncQuota($type, $user)
 				$usage = $usage+$u;
 			}
 			
+			$sql = "SELECT * FROM `databases` WHERE database_user = {$userdata['user_id']}";
+			$databases = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+			foreach( $databases as $d )
+			{
+				$u = 0;
+				$u = $GLOBALS['system']->getdatabasesize($d['database_name']);
+				$u = round($u/1024);
+				
+				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/databases/{$d['database_name']}'";
+				$store = $GLOBALS['db']->query($sql);
+				if( $store['storage_id'] )
+					$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
+				else
+					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/databases/{$d['database_name']}', {$u})";
+					
+				$usage = $usage+$u;
+			}
+			
 			$count = $usage;
 			break;
 		default:
