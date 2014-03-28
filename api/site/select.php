@@ -179,7 +179,13 @@ $a->setExecute(function() use ($a)
 		$sites = array();
 		foreach( $result as $r )
 		{
-			$sql = "SELECT AVG(rating_value) as rating, COUNT(rating_value) as count FROM user_rating WHERE site_ldap_id = {$r['site_ldap_id']}";
+			$sql = "SELECT AVG(rating_value) as rating, COUNT(rating_value) as count, 
+			(SELECT COUNT(rating_value) FROM user_rating WHERE rating_value = 1 and site_ldap_id = {$r['site_ldap_id']}) as count1, 
+			(SELECT COUNT(rating_value) FROM user_rating WHERE rating_value = 2 and site_ldap_id = {$r['site_ldap_id']}) as count2, 
+			(SELECT COUNT(rating_value) FROM user_rating WHERE rating_value = 3 and site_ldap_id = {$r['site_ldap_id']}) as count3, 
+			(SELECT COUNT(rating_value) FROM user_rating WHERE rating_value = 4 and site_ldap_id = {$r['site_ldap_id']}) as count4, 
+			(SELECT COUNT(rating_value) FROM user_rating WHERE rating_value = 5 and site_ldap_id = {$r['site_ldap_id']}) as count5 
+			FROM user_rating WHERE site_ldap_id = {$r['site_ldap_id']}";
 			$rate = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 			
 			$s['id'] = $r['site_ldap_id'];
@@ -189,8 +195,7 @@ $a->setExecute(function() use ($a)
 			$s['url'] = $r['site_url'];
 			$s['status'] = $r['siste_status'];
 			$s['user']  = $r['user_name'];
-			$s['score']  = $rate['rating'];
-			$s['score_count'] = $rate['count'];
+			$s['rating']  = $rate;
 			
 			$sites[] = $s;
 		}
