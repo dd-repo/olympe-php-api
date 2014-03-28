@@ -130,10 +130,8 @@ $a->setExecute(function() use ($a)
 				throw new ApiException("Forbidden", 403, "User {$user} ({$userdata['user_ldap']}) does not match owner of the site {$site}");
 			
 			$s['id'] = $r['site_ldap_id'];
-			$s['title'] = $r['site_title'];
-			$s['description'] = $r['site_description'];
-			$s['category'] = $r['site_category'];
 			$s['url'] = $r['site_url'];
+			$s['owner'] = $r['site_owner'];
 			
 			$sites[] = $s;
 		}
