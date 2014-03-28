@@ -63,6 +63,14 @@ $a->addParam(array(
 	'maxlength'=>5,
 	'match'=>"(1|0|yes|no|true|false)"
 	));
+$a->addParam(array(
+	'name'=>array('fast'),
+	'description'=>'Select from SQL for fast request (basic info).',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -76,12 +84,17 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$site = $a->getParam('site');
 	$user = $a->getParam('user');
+	$directory = $a->getParam('directory');
+	$category = $a->getParam('category');
 	$count = $a->getParam('count');
+	$fast = $a->getParam('fast');
 	
 	if( $count == '1' || $count == 'yes' || $count == 'true' || $count === true || $count === 1 ) $count = true;
 	else $count = false;
 	if( $directory == '1' || $directory == 'yes' || $directory == 'true' || $directory === true || $directory === 1 ) $directory = true;
 	else $directory = false;	
+	if( $fast == '1' || $fast == 'yes' || $fast == 'true' || $fast === true || $fast === 1 ) $fast = true;
+	else $fast = false;	
 	
 	// =================================
 	// GET USER DATA
@@ -93,7 +106,41 @@ $a->setExecute(function() use ($a)
 		if( $userdata == null || $userdata['user_ldap'] == null )
 			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 	}
+	
+	// =================================
+	// GET FAST
+	// =================================
+	if( $fast === true )
+	{
+		$where = '';
+		if( $site !== null && is_numeric($site) )
+			$where .= " AND site_ldap_id = {$site}";
+		else if( $site != null )
+			$where .= " AND site_url = '".security::escape($site).".olympe.in'";
+		if( $user !== null )
+			$where .= " AND site_owner = {$userdata['user_ldap']}";
+			
+		$sql = "SELECT * FROM directory WHERE site_status = 1 {$where}";
+		$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 		
+		$sites = array();
+		foreach( $result as $r )
+		{
+			if( $user !== null && $r['site_owner'] != $userdata['user_ldap'] )
+				throw new ApiException("Forbidden", 403, "User {$user} ({$userdata['user_ldap']}) does not match owner of the site {$site}");
+			
+			$s['id'] = $r['site_ldap_id'];
+			$s['title'] = $r['site_title'];
+			$s['description'] = $r['site_description'];
+			$s['category'] = $r['site_category'];
+			$s['url'] = $r['site_url'];
+			
+			$sites[] = $s;
+		}
+		
+		responder::send($sites);
+	}
+	
 	// =================================
 	// GET DIRECTORY
 	// =================================
@@ -102,6 +149,14 @@ $a->setExecute(function() use ($a)
 		$where = '';
 		if( $category != null )
 			$where .= " AND site_cateory = {$category}";
+		
+		if( $count === true )
+		{
+			$sql = "SELECT count(site_id) as count FROM directory WHERE site_status = 1 {$where}";
+			$result = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+			
+			responder::send($result);
+		}
 		
 		$sql = "SELECT * FROM directory WHERE site_status = 1 {$where}";
 		$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);

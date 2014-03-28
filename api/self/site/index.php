@@ -43,6 +43,15 @@ switch($action)
 		request::addParam('user', security::getUser());
 		grantStore::add('SITE_DELETE');
 		request::forward('/site/delete'); break;
+	case 'response':
+	case 'responsetime':
+	case 'time':
+	case 'delay':
+		security::requireGrants(array('ACCESS', 'SELF_SITE_SELECT'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('SITE_SELECT');
+		request::forward('/site/response'); break;
 	case 'help':
 	case 'doc':
 		$body = "
@@ -52,6 +61,7 @@ switch($action)
 	<li><h2><a href=\"/site/select/help\">select</a></h2> (alias : list, view, search)</li>
 	<li><h2><a href=\"/site/update/help\">update</a></h2> (alias : modify, change)</li>
 	<li><h2><a href=\"/site/delete/help\">delete</a></h2> (alias : del, remove, destroy)</li>
+	<li><h2><a href=\"/site/reponse/help\">reponse</a></h2> (alias : reponse, reponsetime, time, delay)</li>
 </ul>";
 		responder::help($body);
 		break;
