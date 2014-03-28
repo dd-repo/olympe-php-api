@@ -165,14 +165,14 @@ $a->setExecute(function() use ($a)
 
 	if( strlen($set) > 0 )
 	{
-		$sql = "SELECT site_id FROM directory WHERE site_real_id = {$result['uidNumber']}";
+		$sql = "SELECT site_id FROM directory WHERE site_ldap_id = {$result['uidNumber']}";
 		$test = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 		
 		if( $test['site_id'] )
-			$sql = "UPDATE directory SET site_id = site_id {$set} WHERE site_real_id = {$result['uidNumber']}";
+			$sql = "UPDATE directory SET site_id = site_id {$set} WHERE site_ldap_id = {$result['uidNumber']}";
 		else
 		{
-			$sql = "INSERT INTO directory (site_real_id, site_title, site_description, site_url, site_category) 
+			$sql = "INSERT INTO directory (site_ldap_id, site_title, site_description, site_url, site_category) 
 			VALUES ('{$result['uidNumber']}',  '".security::escape($title)."',  '".security::escape($description)."', '{$result['associatedDomain']}', '".security::escape($category)."')"; 
 		}
 		
