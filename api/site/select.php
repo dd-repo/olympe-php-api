@@ -162,6 +162,9 @@ $a->setExecute(function() use ($a)
 		$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$result['homeDirectory']}'";
 		$storage = $GLOBALS['db']->query($sql);
 		
+		$sql = "SELECT * FROM directory WHERE site_ldap_id = '{$result['uidNumber']}'";
+		$directory = $GLOBALS['db']->query($sql);
+			
 		$s['name'] = $result['uid'];
 		$s['id'] = $result['uidNumber'];
 		$s['hostname'] = $result['associatedDomain'];
@@ -169,8 +172,10 @@ $a->setExecute(function() use ($a)
 		$s['size'] = $storage['storage_size'];
 		$s['cNAMERecord'] = $result['cNAMERecord'];
 		$s['aRecord'] = $result['aRecord'];
-		$s['description'] = $result['description'];
-		$s['directory'] = $result['gecos'];
+		$s['title'] = $directory['site_title'];
+		$s['description'] = $directory['site_description'];
+		$s['category'] = $directory['site_category'];
+		$s['directory'] = $directory['site_status'];
 		$s['user'] = array('id'=>$info['user_id'], 'name'=>$info['user_name']);
 		
 		$sites[] = $s;
@@ -193,6 +198,7 @@ $a->setExecute(function() use ($a)
 			$s['aRecord'] = $r['aRecord'];
 			$s['title'] = $directory['site_title'];
 			$s['description'] = $directory['site_description'];
+			$s['category'] = $directory['site_category'];
 			$s['directory'] = $directory['site_status'];
 			$s['user'] = array('id'=>'', 'name'=>'');
 			
