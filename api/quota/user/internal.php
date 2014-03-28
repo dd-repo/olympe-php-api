@@ -125,6 +125,8 @@ function syncQuota($type, $user)
 				$u = 0;
 				$u = $GLOBALS['system']->getdatabasesize($d['database_name'], $d['database_type']);
 				$u = round($u/1024);
+				if( $d['database_type'] == 'pgsql' )
+					$u = round($u/1024);
 
 				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/databases/{$d['database_name']}'";
 				$store = $GLOBALS['db']->query($sql);
