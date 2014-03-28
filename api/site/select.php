@@ -119,6 +119,8 @@ $a->setExecute(function() use ($a)
 			$where .= " AND site_url = '".security::escape($site).".olympe.in'";
 		if( $user !== null )
 			$where .= " AND site_owner = {$userdata['user_ldap']}";
+		if( $category != null )
+			$where .= " AND site_category = {$category}";
 			
 		$sql = "SELECT * FROM directory WHERE site_status = 1 {$where}";
 		$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
@@ -145,8 +147,14 @@ $a->setExecute(function() use ($a)
 	if( $directory === true )
 	{
 		$where = '';
+		if( $site !== null && is_numeric($site) )
+			$where .= " AND site_ldap_id = {$site}";
+		else if( $site != null )
+			$where .= " AND site_url = '".security::escape($site).".olympe.in'";
+		if( $user !== null )
+			$where .= " AND site_owner = {$userdata['user_ldap']}";
 		if( $category != null )
-			$where .= " AND site_cateory = {$category}";
+			$where .= " AND site_category = {$category}";
 		
 		if( $count === true )
 		{
