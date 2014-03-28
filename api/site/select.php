@@ -28,8 +28,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>50,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
-	'action'=>false
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
@@ -39,6 +38,22 @@ $a->addParam(array(
 	'maxlength'=>30,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	'action'=>false
+	));
+$a->addParam(array(
+	'name'=>array('directory'),
+	'description'=>'Select directory.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
+	'name'=>array('category'),
+	'description'=>'If directory is true, select only this category.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>2,
+	'match'=>request::NUMBER
 	));
 $a->addParam(array(
 	'name'=>array('count'),
@@ -65,6 +80,8 @@ $a->setExecute(function() use ($a)
 	
 	if( $count == '1' || $count == 'yes' || $count == 'true' || $count === true || $count === 1 ) $count = true;
 	else $count = false;
+	if( $directory == '1' || $directory == 'yes' || $directory == 'true' || $directory === true || $directory === 1 ) $directory = true;
+	else $directory = false;	
 	
 	// =================================
 	// GET USER DATA
@@ -76,7 +93,34 @@ $a->setExecute(function() use ($a)
 		if( $userdata == null || $userdata['user_ldap'] == null )
 			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 	}
-
+		
+	// =================================
+	// GET DIRECTORY
+	// =================================
+	if( $directory === true )
+	{
+		$where = '';
+		if( $category != null )
+			$where .= " AND site_cateory = {$category}";
+		
+		$sql = "SELECT * FROM directory WHERE site_status = 1 {$where}";
+		$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+		
+		$sites = array();
+		foreach( $result as $r )
+		{
+			$s['id'] = $r['site_ldap_id'];
+			$s['title'] = $r['site_title'];
+			$s['description'] = $r['site_description'];
+			$s['category'] = $r['site_category'];
+			$s['url'] = $r['site_url'];
+			
+			$sites[] = $s;
+		}
+		
+		responder::send($sites);
+	}
+	
 	// =================================
 	// SELECT REMOTE ENTRIES
 	// =================================
@@ -137,6 +181,8 @@ $a->setExecute(function() use ($a)
 		{
 			$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
 			$storage = $GLOBALS['db']->query($sql);
+			$sql = "SELECT * FROM directory WHERE site_ldap_id = '{$r['uidNumber']}'";
+			$directory = $GLOBALS['db']->query($sql);
 			
 			$s['name'] = $r['uid'];
 			$s['id'] = $r['uidNumber'];
@@ -145,8 +191,9 @@ $a->setExecute(function() use ($a)
 			$s['size'] = $storage['storage_size'];
 			$s['cNAMERecord'] = $r['cNAMERecord'];
 			$s['aRecord'] = $r['aRecord'];
-			$s['description'] = $r['description'];
-			$s['directory'] = $r['gecos'];
+			$s['title'] = $directory['site_title'];
+			$s['description'] = $directory['site_description'];
+			$s['directory'] = $directory['site_status'];
 			$s['user'] = array('id'=>'', 'name'=>'');
 			
 			$sites[] = $s;	

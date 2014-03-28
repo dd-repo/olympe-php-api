@@ -171,8 +171,11 @@ $a->setExecute(function() use ($a)
 		if( $test['site_id'] )
 			$sql = "UPDATE directory SET site_id = site_id {$set} WHERE site_real_id = {$result['uidNumber']}";
 		else
-			$sql = "INSERT INTO directory (site_real_id, site_title, site_description, site_category) VALUES ('{$result['uidNumber']}',  '".security::escape($title)."',  '".security::escape($description)."', '".security::escape($category)."')"; 
-			
+		{
+			$sql = "INSERT INTO directory (site_real_id, site_title, site_description, site_url, site_category) 
+			VALUES ('{$result['uidNumber']}',  '".security::escape($title)."',  '".security::escape($description)."', '{$result['associatedDomain']}', '".security::escape($category)."')"; 
+		}
+		
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
 	
