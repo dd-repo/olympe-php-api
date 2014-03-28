@@ -36,8 +36,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>30,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
-	'action'=>false
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
 	'name'=>array('directory'),
@@ -62,6 +61,14 @@ $a->addParam(array(
 	'minlength'=>0,
 	'maxlength'=>2,
 	'match'=>request::NUMBER
+	));
+$a->addParam(array(
+	'name'=>array('ordered'),
+	'description'=>'Ordered by.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>30,
+	'match'=>request::LOWER
 	));
 $a->addParam(array(
 	'name'=>array('count'),
@@ -96,6 +103,7 @@ $a->setExecute(function() use ($a)
 	$category = $a->getParam('category');
 	$directory_status = $a->getParam('directory_status');
 	$count = $a->getParam('count');
+	$ordered = $a->getParam('ordered');
 	$fast = $a->getParam('fast');
 	
 	if( $count == '1' || $count == 'yes' || $count == 'true' || $count === true || $count === 1 ) $count = true;
@@ -159,11 +167,18 @@ $a->setExecute(function() use ($a)
 			$where .= " AND site_url = '".security::escape($site).".olympe.in'";
 		if( $user !== null )
 			$where .= " AND site_owner = {$userdata['user_ldap']}";
-		if( $category != null )
+		if( $category !== null )
 			$where .= " AND site_category = {$category}";
-		if( $directory_status != null )
+		if( $directory_status !== null )
 			$where .= " AND site_status = {$directory_status}";
 
+		$order = 'ORDER BY';
+		if( $ordered !== null )
+			$order .= " " . security::escape($ordered);
+		else
+			$order .= " site_date";
+		$order .= " DESC";
+		
 		if( $count === true )
 		{
 			$sql = "SELECT count(site_id) as count FROM directory WHERE site_status > 1 {$where}";
@@ -173,7 +188,7 @@ $a->setExecute(function() use ($a)
 		}
 		
 		$sql = "SELECT d.site_id, d.site_ldap_id, d.site_title, d.site_description, d.site_category, d.site_url, d.site_status, u.user_name FROM directory d
-		LEFT JOIN users u ON(u.user_ldap = d.site_owner) WHERE 1 {$where}";
+		LEFT JOIN users u ON(u.user_ldap = d.site_owner) WHERE 1 {$where} {$order}";
 		$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 		
 		$sites = array();
