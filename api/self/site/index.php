@@ -69,13 +69,13 @@ switch($action)
 		$body = "
 <h1><a href=\"/help\">API Help</a> :: <a href=\"/self/help\">self</a> :: site</h1>
 <ul>
-	<li><h2><a href=\"/site/insert/help\">insert</a></h2> (alias : create, add)</li>
-	<li><h2><a href=\"/site/select/help\">select</a></h2> (alias : list, view, search)</li>
-	<li><h2><a href=\"/site/update/help\">update</a></h2> (alias : modify, change)</li>
-	<li><h2><a href=\"/site/delete/help\">delete</a></h2> (alias : del, remove, destroy)</li>
-	<li><h2><a href=\"/site/reponse/help\">reponse</a></h2> (alias : reponse, reponsetime, time, delay)</li>
-	<li><h2><a href=\"/site/setrate/help\">reponse</a></h2> (alias : setrate)</li>
-	<li><h2><a href=\"/site/getrate/help\">reponse</a></h2> (alias : getrate)</li>
+	<li><h2><a href=\"/site/insert/help?f=html\">insert</a></h2> (alias : create, add)</li>
+	<li><h2><a href=\"/site/select/help?f=html\">select</a></h2> (alias : list, view, search)</li>
+	<li><h2><a href=\"/site/update/help?f=html\">update</a></h2> (alias : modify, change)</li>
+	<li><h2><a href=\"/site/delete/help?f=html\">delete</a></h2> (alias : del, remove, destroy)</li>
+	<li><h2><a href=\"/site/reponse/help?f=html\">reponse</a></h2> (alias : reponse, reponsetime, time, delay)</li>
+	<li><h2><a href=\"/site/setrate/help?f=html\">setrate</a></h2> (alias : setrate)</li>
+	<li><h2><a href=\"/site/getrate/help?f=html\">getrate</a></h2> (alias : getrate)</li>
 </ul>";
 		responder::help($body);
 		break;
