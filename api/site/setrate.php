@@ -80,6 +80,12 @@ $a->setExecute(function() use ($a)
 		$sql = "INSERT INTO user_rating (user_id, site_ldap_id, rating_value) VALUES ({$user}, {$result['uidNumber']}, {$rate})";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
+	$sql = "SELECT AVG(rating_value) as score FROM user_rating WHERE site_ldap_id = {$result['uidNumber']}";
+	$result = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+	
+	$sql = "UPDATE directory SET site_score = '{$result['score']}' WHERE site_ldap_id = {$result['uidNumber']}";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	
 	responder::send("OK");
 });
 
