@@ -138,20 +138,15 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $fast === true )
 	{
-		if( $keyword !== null )
-			$where = " AND (site_title LIKE '%" . security::escape($keyword) . "%' OR site_description LIKE '%" . security::escape($keyword) . "%' OR site_url LIKE '%" . security::escape($keyword) . "%')";
-		else
-		{
-			$where = '';
-			if( $site !== null && is_numeric($site) )
-				$where .= " AND site_ldap_id = {$site}";
-			else if( $site != null )
-				$where .= " AND site_url = '".security::escape($site).".olympe.in'";
-			if( $user !== null )
-				$where .= " AND site_owner = {$userdata['user_ldap']}";
-			if( $category != null )
-				$where .= " AND site_category = {$category}";
-		}
+		$where = '';
+		if( $site !== null && is_numeric($site) )
+			$where .= " AND site_ldap_id = {$site}";
+		else if( $site != null )
+			$where .= " AND site_url = '".security::escape($site).".olympe.in'";
+		if( $user !== null )
+			$where .= " AND site_owner = {$userdata['user_ldap']}";
+		if( $category != null )
+			$where .= " AND site_category = {$category}";
 		
 		$sql = "SELECT * FROM directory WHERE 1 {$where}";
 		$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
@@ -174,18 +169,22 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $directory === true )
 	{
-		$where = '';
-		if( $site !== null && is_numeric($site) )
-			$where .= " AND site_ldap_id = {$site}";
-		else if( $site != null )
-			$where .= " AND site_url = '".security::escape($site).".olympe.in'";
-		if( $user !== null )
-			$where .= " AND site_owner = {$userdata['user_ldap']}";
-		if( $category !== null )
-			$where .= " AND site_category = {$category}";
-		if( $directory_status !== null )
-			$where .= " AND site_status = {$directory_status}";
-
+		if( $keyword !== null )
+			$where = " AND (site_title LIKE '%" . security::escape($keyword) . "%' OR site_description LIKE '%" . security::escape($keyword) . "%' OR site_url LIKE '%" . security::escape($keyword) . "%')";
+		else
+		{
+			$where = '';
+			if( $site !== null && is_numeric($site) )
+				$where .= " AND site_ldap_id = {$site}";
+			else if( $site != null )
+				$where .= " AND site_url = '".security::escape($site).".olympe.in'";
+			if( $user !== null )
+				$where .= " AND site_owner = {$userdata['user_ldap']}";
+			if( $category !== null )
+				$where .= " AND site_category = {$category}";
+			if( $directory_status !== null )
+				$where .= " AND site_status = {$directory_status}";
+		}
 		$order = 'ORDER BY';
 		if( $ordered !== null )
 			$order .= " " . security::escape($ordered);
