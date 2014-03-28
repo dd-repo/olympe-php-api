@@ -74,6 +74,8 @@ switch($action)
 	<li><h2><a href=\"/site/update/help\">update</a></h2> (alias : modify, change)</li>
 	<li><h2><a href=\"/site/delete/help\">delete</a></h2> (alias : del, remove, destroy)</li>
 	<li><h2><a href=\"/site/reponse/help\">reponse</a></h2> (alias : reponse, reponsetime, time, delay)</li>
+	<li><h2><a href=\"/site/setrate/help\">reponse</a></h2> (alias : setrate)</li>
+	<li><h2><a href=\"/site/getrate/help\">reponse</a></h2> (alias : getrate)</li>
 </ul>";
 		responder::help($body);
 		break;
