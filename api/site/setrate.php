@@ -81,9 +81,9 @@ $a->setExecute(function() use ($a)
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	$sql = "SELECT AVG(rating_value) as score FROM user_rating WHERE site_ldap_id = {$result['uidNumber']}";
-	$result = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+	$rating = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 	
-	$sql = "UPDATE directory SET site_score = '{$result['score']}' WHERE site_ldap_id = {$result['uidNumber']}";
+	$sql = "UPDATE directory SET site_score = '{$rating['score']}' WHERE site_ldap_id = {$result['uidNumber']}";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	responder::send("OK");
