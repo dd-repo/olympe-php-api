@@ -86,6 +86,7 @@ $i->addEntry('token', array('token', 'tokens'));
 $i->addEntry('grant', array('grant', 'grants'));
 $i->addEntry('quota', array('quota', 'quotas'));
 $i->addEntry('registration', array('registration', 'registrations'));
+$i->addEntry('site', array('site', 'sites'));
 $i->addEntry('domain', array('domain', 'domains'));
 $i->addEntry('alias', array('alias', 'aliases'));
 $i->addEntry('subdomain', array('subdomain', 'subdomains'));
