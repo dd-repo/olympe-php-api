@@ -34,7 +34,7 @@ $a->addParam(array(
 	'description'=>'The CNAME Record of the site.',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>20,
+	'maxlength'=>150,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
@@ -53,6 +53,22 @@ $a->addParam(array(
 	'minlength'=>1,
 	'maxlength'=>5,
 	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
+	'name'=>array('title', 'site_title'),
+	'description'=>'The title of the site.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>200,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
+	'name'=>array('category', 'site_category'),
+	'description'=>'The category of the site.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>2,
+	'match'=>request::NUMBER
 	));
 $a->addParam(array(
 	'name'=>array('description', 'site_description'),
@@ -87,6 +103,8 @@ $a->setExecute(function() use ($a)
 	$cnamerecord = $a->getParam('cnamerecord');
 	$pass = $a->getParam('pass');
 	$directory = $a->getParam('directory');
+	$title = $a->getParam('title');
+	$category = $a->getParam('category');
 	$description = $a->getParam('description');
 	$user = $a->getParam('user');
 	
@@ -132,15 +150,34 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// UPDATE REMOTE SITE
 	// =================================
-	if( $directory !== null && $directory === true )
-		$params['gecos'] = 1;
-	else if( $directory !== null )
-		$params['gecos'] = 0;
+	$set = '';
+	$insert = '';
+	if( $title !== null )
+		$set .= ", site_title = '".security::escape($title)."'";
+	if( $description !== null )
+		$set .= ", site_description = '".security::escape($description)."'";
+	if( $category !== null )
+		$set .= ", site_category = '".security::escape($category)."'";
+	if( $directory === true )
+		$set .= ", site_status = 1";
+	else if( $directory === false )
+		$set .= ", site_status = 0";
+
+	if( strlen($set) > 0 )
+	{
+		$sql = "SELECT site_id FROM directory WHERE site_real_id = {$result['uidNumber']}";
+		$test = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+		
+		if( $test['site_id'] )
+			$sql = "UPDATE directory SET site_id = site_id {$set} WHERE site_real_id = {$result['uidNumber']}";
+		else
+			$sql = "INSERT INTO directory (site_real_id, site_title, site_description, site_category) VALUES ('{$result['uidNumber']}',  '".security::escape($title)."',  '".security::escape($description)."', '".security::escape($category)."')"; 
+			
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	}
 	
 	if( $pass !== null )
 		$params['userPassword'] = $pass;
-	if( $description !== null )
-		$params['description'] = $description;
 	
 	if( $arecord !== null )
 	{
