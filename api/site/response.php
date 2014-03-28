@@ -134,7 +134,7 @@ $a->setExecute(function() use ($a)
 	if( $from !== null )
 		$where .= " AND response_date >= {$from}";
 	if( $to !== null )
-		$where .= " AND response_date >= {$to}";
+		$where .= " AND response_date <= {$to}";
 	if( $start !== null && $limit !== null )
 		$limitation .= $start . ", " . $limit;
 	else
