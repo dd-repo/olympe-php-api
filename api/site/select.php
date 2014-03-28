@@ -140,7 +140,7 @@ $a->setExecute(function() use ($a)
 	if( $fast === true )
 	{
 		if( $keyword !== null )
-			$where = " AND (site_title LIKE '%" . security::escape($keyword) . "%' OR site_description LIKE '%" . security::escape($keyword) . "%' OR site_url LIKE '%" . security::escape($keyword) . "%')"
+			$where = " AND (site_title LIKE '%" . security::escape($keyword) . "%' OR site_description LIKE '%" . security::escape($keyword) . "%' OR site_url LIKE '%" . security::escape($keyword) . "%')";
 		else
 		{
 			$where = '';
