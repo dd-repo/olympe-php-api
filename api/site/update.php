@@ -59,7 +59,7 @@ $a->addParam(array(
 	'description'=>'The title of the site.',
 	'optional'=>true,
 	'minlength'=>3,
-	'maxlength'=>120,
+	'maxlength'=>80,
 	'match'=>request::ALL
 	));
 $a->addParam(array(
@@ -175,7 +175,6 @@ $a->setExecute(function() use ($a)
 			$sql = "INSERT INTO directory (site_ldap_id, site_owner, site_title, site_description, site_url, site_category, site_date) 
 			VALUES ('{$result['uidNumber']}',  '{$userdata['user_ldap']}', '".security::escape($title)."',  '".security::escape($description)."', '{$result['associatedDomain']}', '".security::escape($category)."', UNIX_TIMESTAMP())"; 
 		}
-		
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
 	
