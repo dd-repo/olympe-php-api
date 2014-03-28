@@ -79,6 +79,10 @@ $a->setExecute(function() use ($a)
 			mysql_query("DROP DATABASE `{$database}`", $link);
 			mysql_close($link);
 		break;
+		case 'pgsql':
+			$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$database}";
+			$GLOBALS['system']->exec($commands);
+		break;
 	}
 	
 	// =================================

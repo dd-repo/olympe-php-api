@@ -18,7 +18,7 @@ $a->addParam(array(
 	'optional'=>false,
 	'minlength'=>3,
 	'maxlength'=>12,
-	'match'=>"(mysql|postgresql)"
+	'match'=>"(mysql|pgsql)"
 	));
 $a->addParam(array(
 	'name'=>array('pass', 'password'),
@@ -110,6 +110,10 @@ $a->setExecute(function() use ($a)
 			mysql_query("GRANT ALL PRIVILEGES ON `{$base}` . * TO '{$base}'@'%'", $link);
 			mysql_query("FLUSH PRIVILEGES", $link);
 			mysql_close($link);
+		break;
+		case 'pgsql':
+			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$base} {$pass}";
+			$GLOBALS['system']->exec($commands);
 		break;
 	}
 	

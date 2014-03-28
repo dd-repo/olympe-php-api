@@ -103,7 +103,11 @@ $a->setExecute(function() use ($a)
 				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
 				mysql_query("SET PASSWORD FOR '{$database}'@'%' = PASSWORD('".security::escape($pass)."')", $link);
 				mysql_close($link);
-			break;	
+			break;
+		case 'pgsql':
+			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-pgsql {$base} {$pass}";
+			$GLOBALS['system']->exec($commands);
+		break;
 		}
 	}
 	
