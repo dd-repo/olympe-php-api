@@ -7,7 +7,7 @@ if( !defined('PROPER_START') )
 }
 
 $a = new action();
-$a->addAlias(array('rate', 'rating'));
+$a->addAlias(array('setrate'));
 $a->setDescription("Rate a site");
 $a->addGrant(array('ACCESS', 'SITE_UPDATE'));
 $a->setReturn("OK");

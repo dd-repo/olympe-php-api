@@ -14,7 +14,8 @@ $i->addEntry('select', array('select', 'list', 'view', 'search'));
 $i->addEntry('update', array('update', 'change', 'rename', 'modify'));
 $i->addEntry('delete', array('delete', 'remove', 'del', 'destroy'));
 $i->addEntry('response', array('response', 'responsetime', 'time', 'delay'));
-$i->addEntry('rate', array('rate', 'rating'));
+$i->addEntry('setrate', array('setrate'));
+$i->addEntry('getrate', array('setrate'));
 
 return $i;
 

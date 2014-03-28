@@ -52,6 +52,18 @@ switch($action)
 		request::addParam('user', security::getUser());
 		grantStore::add('SITE_SELECT');
 		request::forward('/site/response'); break;
+	case 'setrate':
+		security::requireGrants(array('ACCESS', 'SELF_SITE_UPDATE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('SITE_UPDATE');
+		request::forward('/site/setrate'); break;
+	case 'getrate':
+		security::requireGrants(array('ACCESS', 'SELF_SITE_SELECT'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('SITE_SELECT');
+		request::forward('/site/getrate'); break;
 	case 'help':
 	case 'doc':
 		$body = "
