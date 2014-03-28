@@ -179,6 +179,9 @@ $a->setExecute(function() use ($a)
 		$sites = array();
 		foreach( $result as $r )
 		{
+			$sql = "SELECT AVG(rating_value) as rating, COUNT(rating_value) as count FROM user_rating WHERE site_ldap_id = {$r['site_ldap_id']}";
+			$rate = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+			
 			$s['id'] = $r['site_ldap_id'];
 			$s['title'] = $r['site_title'];
 			$s['description'] = $r['site_description'];
@@ -186,6 +189,8 @@ $a->setExecute(function() use ($a)
 			$s['url'] = $r['site_url'];
 			$s['status'] = $r['siste_status'];
 			$s['user']  = $r['user_name'];
+			$s['score']  = $rate['rating'];
+			$s['score_count'] = $rate['count'];
 			
 			$sites[] = $s;
 		}
