@@ -81,7 +81,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	while(true)
 	{
-		$chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+		$chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
 		$base = '';
 		for( $u = 1; $u <= 8; $u++ )
 		{
