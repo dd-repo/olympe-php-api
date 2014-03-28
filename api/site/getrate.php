@@ -65,6 +65,9 @@ $a->setExecute(function() use ($a)
 	$sql = "SELECT rating_value FROM user_rating WHERE site_ldap_id = {$result['uidNumber']} AND user_id = {$user}";
 	$result = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 	
+	if( !$result['rating_value'] ) 
+		$result['rating_value'] = 0;
+		
 	responder::send($result);
 });
 
