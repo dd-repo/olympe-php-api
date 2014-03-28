@@ -56,6 +56,14 @@ $a->addParam(array(
 	'match'=>request::NUMBER
 	));
 $a->addParam(array(
+	'name'=>array('directory_status'),
+	'description'=>'The directory status',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>2,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
 	'name'=>array('count'),
 	'description'=>'Whether or not to include only the number of matches. Default is false.',
 	'optional'=>true,
@@ -86,6 +94,7 @@ $a->setExecute(function() use ($a)
 	$user = $a->getParam('user');
 	$directory = $a->getParam('directory');
 	$category = $a->getParam('category');
+	$directory_status = $a->getParam('directory_status');
 	$count = $a->getParam('count');
 	$fast = $a->getParam('fast');
 	
@@ -121,16 +130,13 @@ $a->setExecute(function() use ($a)
 			$where .= " AND site_owner = {$userdata['user_ldap']}";
 		if( $category != null )
 			$where .= " AND site_category = {$category}";
-			
-		$sql = "SELECT * FROM directory WHERE site_status = 1 {$where}";
+
+		$sql = "SELECT * FROM directory WHERE 1 {$where}";
 		$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 		
 		$sites = array();
 		foreach( $result as $r )
-		{
-			if( $user !== null && $r['site_owner'] != $userdata['user_ldap'] )
-				throw new ApiException("Forbidden", 403, "User {$user} ({$userdata['user_ldap']}) does not match owner of the site {$site}");
-			
+		{			
 			$s['id'] = $r['site_ldap_id'];
 			$s['url'] = $r['site_url'];
 			$s['owner'] = $r['site_owner'];
@@ -155,16 +161,18 @@ $a->setExecute(function() use ($a)
 			$where .= " AND site_owner = {$userdata['user_ldap']}";
 		if( $category != null )
 			$where .= " AND site_category = {$category}";
-		
+		if( $directory_status != null )
+			$where .= " AND site_status = {$directory_status}";
+
 		if( $count === true )
 		{
-			$sql = "SELECT count(site_id) as count FROM directory WHERE site_status = 1 {$where}";
+			$sql = "SELECT count(site_id) as count FROM directory WHERE site_status > 1 {$where}";
 			$result = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 			
 			responder::send($result);
 		}
 		
-		$sql = "SELECT * FROM directory WHERE site_status = 1 {$where}";
+		$sql = "SELECT * FROM directory WHERE site_status > 1 {$where}";
 		$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 		
 		$sites = array();
