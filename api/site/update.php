@@ -59,7 +59,7 @@ $a->addParam(array(
 	'description'=>'The title of the site.',
 	'optional'=>true,
 	'minlength'=>3,
-	'maxlength'=>200,
+	'maxlength'=>120,
 	'match'=>request::ALL
 	));
 $a->addParam(array(
