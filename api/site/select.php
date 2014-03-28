@@ -38,7 +38,6 @@ $a->addParam(array(
 	'maxlength'=>200,
 	'match'=>request::ALL
 	));
-$a->addPara
 $a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
