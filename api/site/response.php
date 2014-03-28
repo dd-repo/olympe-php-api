@@ -149,7 +149,7 @@ $a->setExecute(function() use ($a)
 	// SELECT RECORDS
 	// =================================
 	if( $group !== null )
-		$sql = "SELECT COUNT(*) as count, {$group} (FROM_UNIXTIME(response_date)) as {$group} FROM responsetimes WHERE 1 {$where} GROUP BY {$group} (FROM_UNIXTIME(reponse_date)";
+		$sql = "SELECT COUNT(*) as count, {$group} (FROM_UNIXTIME(response_date)) as {$group} FROM responsetimes WHERE 1 {$where} GROUP BY {$group} (FROM_UNIXTIME(response_date))";
 	if( $count === true )
 		$sql = "SELECT COUNT(response_id) as count FROM responsetimes WHERE 1 {$where} ORDER BY {$order} {$ordered} LIMIT {$limitation}";	
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
