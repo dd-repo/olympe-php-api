@@ -68,7 +68,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>30,
-	'match'=>request::LOWER
+	'match'=>"(site_score|site_date|site_ldap_id)"
 	));
 $a->addParam(array(
 	'name'=>array('count'),
