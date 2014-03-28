@@ -172,7 +172,8 @@ $a->setExecute(function() use ($a)
 			responder::send($result);
 		}
 		
-		$sql = "SELECT * FROM directory WHERE site_status > 1 {$where}";
+		$sql = "SELECT d.site_id, d.site_ldap_id, d.site_title, d.site_description, d.site_category, d.site_url, d.site_status, u.user_name FROM directory d
+		LEFT JOIN users u ON(u.user_ldap = d.site_owner) WHERE 1 {$where}";
 		$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 		
 		$sites = array();
@@ -183,6 +184,8 @@ $a->setExecute(function() use ($a)
 			$s['description'] = $r['site_description'];
 			$s['category'] = $r['site_category'];
 			$s['url'] = $r['site_url'];
+			$s['status'] = $r['siste_status'];
+			$s['user']  = $r['user_name'];
 			
 			$sites[] = $s;
 		}
