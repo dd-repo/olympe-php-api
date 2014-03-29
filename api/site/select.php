@@ -194,7 +194,7 @@ $a->setExecute(function() use ($a)
 		
 		if( $count === true )
 		{
-			$sql = "SELECT count(site_id) as count FROM directory WHERE site_status > 1 {$where}";
+			$sql = "SELECT count(site_id) as count FROM directory WHERE site_status > 0 {$where}";
 			$result = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 			
 			responder::send($result);
