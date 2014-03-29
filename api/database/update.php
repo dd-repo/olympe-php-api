@@ -111,6 +111,10 @@ $a->setExecute(function() use ($a)
 			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-pgsql {$base} {$pass}";
 			$GLOBALS['system']->exec($commands);
 		break;
+		case 'mongodb':
+			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-mongodb {$base} {$pass}";
+			$GLOBALS['system']->exec($commands);
+		break;
 		}
 	}
 	

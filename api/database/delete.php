@@ -86,6 +86,10 @@ $a->setExecute(function() use ($a)
 			$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$database}";
 			$GLOBALS['system']->exec($commands);
 		break;
+		case 'mongodb':
+			$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$database}";
+			$GLOBALS['system']->exec($commands);
+		break;
 	}
 	
 	// =================================

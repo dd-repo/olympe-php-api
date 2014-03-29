@@ -118,15 +118,13 @@ $a->setExecute(function() use ($a)
 		break;
 		case 'pgsql':
 			$server = 'sql.olympe.in';
-			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$base} {$pass}";
+			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$base} {$pass} {$server}";
 			$GLOBALS['system']->exec($commands);
 		break;
 		case 'mongodb':
-			$mongo = new Mongo("mongodb://{$GLOBALS['CONFIG']['MONGODB_ROOT_USER']}:{$GLOBALS['CONFIG']['MONGODB_ROOT_PASSWORD']}@{$GLOBALS['CONFIG']['MONGODB_ROOT_HOST']}", array("persist" => "abcd1234"));
-			$db = $mongo->selectDB("admin");
-			$collection = $db->selectCollection("system.users");
-			$collection->insert(array('user' => $base, 'pwd' => md5($base . ":mongo:" . $pass), 'userSource' => $base, 'roles' => array('readWrite', 'dbAdmin')));
-			$mongo->selectDB($base);
+			$server = 'sql.olympe.in';
+			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$base} {$pass} {$server}";
+			$GLOBALS['system']->exec($commands);
 		break;
 	}
 	
