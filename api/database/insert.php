@@ -18,7 +18,7 @@ $a->addParam(array(
 	'optional'=>false,
 	'minlength'=>3,
 	'maxlength'=>12,
-	'match'=>"(mysql|pgsql)"
+	'match'=>"(mysql|pgsql|mongodb)"
 	));
 $a->addParam(array(
 	'name'=>array('pass', 'password'),
@@ -103,24 +103,33 @@ $a->setExecute(function() use ($a)
 	switch( $type )
 	{
 		case 'mysql':
-			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
 			mysql_query("CREATE USER '{$base}'@'%' IDENTIFIED BY '{$pass}'", $link);
 			mysql_query("CREATE DATABASE `{$base}` CHARACTER SET utf8 COLLATE utf8_unicode_ci", $link);
 			mysql_query("GRANT USAGE ON * . * TO '{$base}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0", $link);
 			mysql_query("GRANT ALL PRIVILEGES ON `{$base}` . * TO '{$base}'@'%'", $link);
 			mysql_query("FLUSH PRIVILEGES", $link);
 			mysql_close($link);
+			$server = 'sql2.olympe.in';
 		break;
 		case 'pgsql':
 			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$base} {$pass}";
 			$GLOBALS['system']->exec($commands);
+			$server = 'sql.olympe.in'
+		break;
+		case 'mongodb':
+			$mongo = new Mongo("mongodb://{$GLOBALS['CONFIG']['MONGODB_ROOT_USER']}:{$GLOBALS['CONFIG']['MONGODB_ROOT_PASSWORD']}@{$GLOBALS['CONFIG']['MONGODB_ROOT_HOST']}", array("persist" => "abcd1234"));
+			$db = $mongo->selectDB("admin");
+			$collection = $db->selectCollection("system.users");
+			$collection->insert(array('user' => $base, 'pwd' => md5($base . ":mongo:" . $pass), 'userSource' => $base, 'roles' => array("readWrite", "dbAdmin")));
+			$mongo->selectDB($base);
 		break;
 	}
 	
 	// =================================
 	// INSERT LOCAL DATABASE
 	// =================================
-	$sql = "INSERT INTO `databases` (database_name, database_type, database_user, database_desc) VALUE ('{$base}', '{$type}', {$userdata['user_id']}, '".security::escape($desc)."')";
+	$sql = "INSERT INTO `databases` (database_name, database_type, database_user, database_desc, database_server) VALUE ('{$base}', '{$type}', {$userdata['user_id']}, '".security::escape($desc)."', '{$server}')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
 	// =================================

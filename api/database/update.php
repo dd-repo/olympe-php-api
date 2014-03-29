@@ -66,7 +66,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $user !== null )
 	{
-		$sql = "SELECT d.database_type
+		$sql = "SELECT d.database_type, d.database_server
 				FROM users u
 				LEFT JOIN `databases` d ON(d.database_user = u.user_id)
 				WHERE database_name = '".security::escape($database)."'
@@ -74,7 +74,7 @@ $a->setExecute(function() use ($a)
 	}
 	else
 	{
-		$sql = "SELECT d.database_type
+		$sql = "SELECT d.database_type, d.database_server
 				FROM `databases` d
 				WHERE database_name = '".security::escape($database)."'";
 	}
@@ -100,7 +100,10 @@ $a->setExecute(function() use ($a)
 		switch( $result['database_type'] )
 		{
 			case 'mysql':
-				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+				if( $result['database_server'] == 'sql.olympe.in' )
+					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+				else if( $result['database_server'] == 'sql2.olympe.in' )
+					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
 				mysql_query("SET PASSWORD FOR '{$database}'@'%' = PASSWORD('".security::escape($pass)."')", $link);
 				mysql_close($link);
 			break;

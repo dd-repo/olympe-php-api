@@ -81,7 +81,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT RECORDS
 	// =================================
-	$sql = "SELECT d.database_name, d.database_type, d.database_desc, u.user_id, u.user_name 
+	$sql = "SELECT d.database_name, d.database_type, d.database_desc, d.database_server, u.user_id, u.user_name 
 			FROM `databases` d
 			LEFT JOIN users u ON(u.user_id = d.database_user)
 			WHERE true {$where}";
