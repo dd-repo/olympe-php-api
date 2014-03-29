@@ -119,13 +119,13 @@ $a->setExecute(function() use ($a)
 		case 'pgsql':
 			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$base} {$pass}";
 			$GLOBALS['system']->exec($commands);
-			$server = 'sql.olympe.in'
+			$server = 'sql.olympe.in';
 		break;
 		case 'mongodb':
 			$mongo = new Mongo("mongodb://{$GLOBALS['CONFIG']['MONGODB_ROOT_USER']}:{$GLOBALS['CONFIG']['MONGODB_ROOT_PASSWORD']}@{$GLOBALS['CONFIG']['MONGODB_ROOT_HOST']}", array("persist" => "abcd1234"));
 			$db = $mongo->selectDB("admin");
 			$collection = $db->selectCollection("system.users");
-			$collection->insert(array('user' => $base, 'pwd' => md5($base . ":mongo:" . $pass), 'userSource' => $base, 'roles' => array("readWrite", "dbAdmin")));
+			$collection->insert(array('user' => $base, 'pwd' => md5($base . ":mongo:" . $pass), 'userSource' => $base, 'roles' => array('readWrite', 'dbAdmin')));
 			$mongo->selectDB($base);
 		break;
 	}
