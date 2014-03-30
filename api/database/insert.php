@@ -130,7 +130,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// INSERT LOCAL DATABASE
 	// =================================
-	$sql = "INSERT INTO `databases` (database_name, database_type, database_user, database_desc, database_server) VALUE ('{$base}', '{$type}', {$userdata['user_id']}, '".security::escape($desc)."', '{$server}')";
+	$sql = "INSERT INTO `databases` (database_name, database_type, database_user, database_desc, database_server, database_date) VALUE ('{$base}', '{$type}', {$userdata['user_id']}, '".security::escape($desc)."', '{$server}', UNIX_TIMESTAMP())";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
 	// =================================
