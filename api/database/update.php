@@ -38,6 +38,14 @@ $a->addParam(array(
 	'match'=>request::PHRASE|request::SPECIAL
 	));
 $a->addParam(array(
+	'name'=>array('server', 'database_server'),
+	'description'=>'The server of the database',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>15,
+	'match'=>"(sql.olympe.in|sql1.olympe.in|sql2.olympe.in)"
+	));
+$a->addParam(array(
 	'name'=>array('user', 'name', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>false,
@@ -59,6 +67,7 @@ $a->setExecute(function() use ($a)
 	$database = $a->getParam('database');
 	$pass = $a->getParam('pass');
 	$desc = $a->getParam('desc');
+	$server = $a->getParam('server');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -86,11 +95,14 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// UPDATE LOCAL DATABASE
 	// =================================
+	$set = '';
 	if( $desc !== null )
-	{
-		$sql = "UPDATE `databases` SET database_desc = '".security::escape($desc)."' WHERE database_name = '".security::escape($database)."'";
-		$GLOBALS['db']->query($sql, mysql::NO_ROW);
-	}
+		$set .= ", database_desc = '".security::escape($desc)."'";
+	if( $server !== null )
+		$set .= ", database_server = '".security::escape($server)."'";
+		
+	$sql = "UPDATE `databases` SET database_name = database_name {$set} WHERE database_name = '".security::escape($database)."'";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	// =================================
 	// UPDATE REMOTE DATABASE
@@ -108,13 +120,23 @@ $a->setExecute(function() use ($a)
 				mysql_close($link);
 			break;
 		case 'pgsql':
-			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-pgsql {$base} {$pass}";
+			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-pgsql {$database} ".security::escape($pass)."";
 			$GLOBALS['system']->exec($commands);
 		break;
 		case 'mongodb':
-			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-mongodb {$base} {$pass}";
+			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-mongodb {$database} ".security::escape($pass)."";
 			$GLOBALS['system']->exec($commands);
 		break;
+		}
+	}
+	
+	if( $server !== null && $server != $result['database_server'] & $pass !== null )
+	{
+		switch( $result['database_type'] )
+		{
+			case 'mysql':
+				$commands[] = "/dns/tm/sys/usr/local/bin/migrate-db-mysql {$database} ".security::escape($pass)." {$result['database_server']} {$server}";
+			break;
 		}
 	}
 	
