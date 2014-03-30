@@ -98,9 +98,9 @@ $a->setExecute(function() use ($a)
 	{
 		$sql = "SELECT storage_size FROM storages WHERE storage_path = '/databases/{$r['database_name']}'";
 		$storage = $GLOBALS['db']->query($sql);
-		$sql = "SELECT COUNT(database_name) as count WHERE database_server = 'sql.olympe.in'";
+		$sql = "SELECT COUNT(database_name) as count FROM `databases` WHERE database_server = 'sql.olympe.in'";
 		$sql1 = $GLOBALS['db']->query($sql);
-		$sql = "SELECT COUNT(database_name) as count WHERE database_server = 'sql2.olympe.in'";
+		$sql = "SELECT COUNT(database_name) as count FROM `databases` WHERE database_server = 'sql2.olympe.in'";
 		$sql2 = $GLOBALS['db']->query($sql);
 		
 		$d['name'] = $r['database_name'];
