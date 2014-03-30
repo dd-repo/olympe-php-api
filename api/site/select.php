@@ -184,6 +184,8 @@ $a->setExecute(function() use ($a)
 				$where .= " AND site_category = {$category}";
 			if( $directory_status !== null )
 				$where .= " AND site_status = {$directory_status}";
+			else
+				$where .= " AND site_status > 0";
 		}
 		$order = 'ORDER BY';
 		if( $ordered !== null )
@@ -194,7 +196,7 @@ $a->setExecute(function() use ($a)
 		
 		if( $count === true )
 		{
-			$sql = "SELECT count(site_id) as count FROM directory WHERE site_status > 0 {$where}";
+			$sql = "SELECT count(site_id) as count FROM directory WHERE 1 {$where}";
 			$result = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 			
 			responder::send($result);
