@@ -103,7 +103,7 @@ $a->setExecute(function() use ($a)
 	switch( $type )
 	{
 		case 'mysql':
-			$server = 'sql.olympe.in';
+			$server = 'sql2.olympe.in';
 			if( $server == 'sql.olympe.in' )
 				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
 			else if( $server == 'sql2.olympe.in' )
@@ -114,7 +114,6 @@ $a->setExecute(function() use ($a)
 			mysql_query("GRANT ALL PRIVILEGES ON `{$base}` . * TO '{$base}'@'%'", $link);
 			mysql_query("FLUSH PRIVILEGES", $link);
 			mysql_close($link);
-			
 		break;
 		case 'pgsql':
 			$server = 'sql.olympe.in';
