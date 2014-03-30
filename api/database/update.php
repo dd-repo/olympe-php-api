@@ -113,6 +113,7 @@ $a->setExecute(function() use ($a)
 		{
 			case 'mysql':
 				$commands[] = "/dns/tm/sys/usr/local/bin/migrate-db-mysql {$database} ".security::escape($pass)." {$result['database_server']} {$server}";
+				$GLOBALS['system']->exec($commands);
 			break;
 		}
 	}
