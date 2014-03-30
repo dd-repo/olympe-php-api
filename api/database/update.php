@@ -107,12 +107,21 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// UPDATE REMOTE DATABASE
 	// =================================
-	if( $pass !== null )
+	if( $server !== null && $server != $result['database_server'] & $pass !== null )
 	{
 		switch( $result['database_type'] )
 		{
 			case 'mysql':
-				if( $result['database_server'] == 'sql.olympe.in' )
+				$commands[] = "/dns/tm/sys/usr/local/bin/migrate-db-mysql {$database} ".security::escape($pass)." {$result['database_server']} {$server}";
+			break;
+		}
+	}
+	else if( $pass !== null )
+	{
+		switch( $result['database_type'] )
+		{
+			case 'mysql':
+				if( $result['database_server'] == 'sql.olympe.in' || $result['database_server'] == 'sql1.olympe.in' )
 					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
 				else if( $result['database_server'] == 'sql2.olympe.in' )
 					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
@@ -127,16 +136,6 @@ $a->setExecute(function() use ($a)
 			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-mongodb {$database} ".security::escape($pass)."";
 			$GLOBALS['system']->exec($commands);
 		break;
-		}
-	}
-	
-	if( $server !== null && $server != $result['database_server'] & $pass !== null )
-	{
-		switch( $result['database_type'] )
-		{
-			case 'mysql':
-				$commands[] = "/dns/tm/sys/usr/local/bin/migrate-db-mysql {$database} ".security::escape($pass)." {$result['database_server']} {$server}";
-			break;
 		}
 	}
 	

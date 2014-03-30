@@ -104,7 +104,7 @@ $a->setExecute(function() use ($a)
 	{
 		case 'mysql':
 			$server = 'sql2.olympe.in';
-			if( $server == 'sql.olympe.in' )
+			if( $server == 'sql.olympe.in' || $server == 'sql1.olympe.in' )
 				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
 			else if( $server == 'sql2.olympe.in' )
 				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
