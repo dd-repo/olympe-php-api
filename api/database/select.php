@@ -98,10 +98,8 @@ $a->setExecute(function() use ($a)
 	{
 		$sql = "SELECT storage_size FROM storages WHERE storage_path = '/databases/{$r['database_name']}'";
 		$storage = $GLOBALS['db']->query($sql);
-		$sql = "SELECT COUNT(database_name) as count FROM `databases` WHERE database_server = 'sql.olympe.in'";
-		$sql1 = $GLOBALS['db']->query($sql);
-		$sql = "SELECT COUNT(database_name) as count FROM `databases` WHERE database_server = 'sql2.olympe.in'";
-		$sql2 = $GLOBALS['db']->query($sql);
+		$sql = "SELECT COUNT(database_name) as count FROM `databases` WHERE database_server = '{$r['database_server']}'";
+		$stats = $GLOBALS['db']->query($sql);
 		
 		$d['name'] = $r['database_name'];
 		$d['type'] = $r['database_type'];
@@ -109,7 +107,7 @@ $a->setExecute(function() use ($a)
 		$d['server'] = $r['database_server'];
 		$d['size'] = $storage['storage_size'];
 		$d['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name']);
-		$d['stats'] = array('sql'=>$sql1['count'], 'sql2'=>$sql2['count']);
+		$d['load'] = $stats['count'];
 		
 		$databases[] = $d;		
 	}
