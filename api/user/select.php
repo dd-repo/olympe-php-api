@@ -290,13 +290,17 @@ $a->setExecute(function() use ($a)
 				$dn = $GLOBALS['ldap']->getDNfromUID($r['uid']);
 				$result = $GLOBALS['ldap']->read($dn);
 				
+				$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$result['homeDirectory']}'";
+				$storage = $GLOBALS['db']->query($sql);
+			
 				$users[$i]['firstname'] = $result['givenName'];
 				$users[$i]['lastname'] = $result['sn'];
 				$users[$i]['language'] = $result['gecos'];
 				$users[$i]['ip'] = $result['ipHostNumber'];
 				$users[$i]['address'] = $result['postalAddress'];
 				$users[$i]['description'] = $result['description'];
-				$users[$i]['email'] = (isset($result['mailForwardingAddress'])?$result['mailForwardingAddress']:$result['mail']);			
+				$users[$i]['email'] = (isset($result['mailForwardingAddress'])?$result['mailForwardingAddress']:$result['mail']);
+				$users[$i]['size'] = $storage['storage_size'];
 			}
 			$i++;
 		}
