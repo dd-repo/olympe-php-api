@@ -75,7 +75,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $user !== null )
 	{
-		$sql = "SELECT d.database_type, d.database_server
+		$sql = "SELECT d.database_type, d.database_server, d.database_user
 				FROM users u
 				LEFT JOIN `databases` d ON(d.database_user = u.user_id)
 				WHERE database_name = '".security::escape($database)."'
@@ -83,7 +83,7 @@ $a->setExecute(function() use ($a)
 	}
 	else
 	{
-		$sql = "SELECT d.database_type, d.database_server
+		$sql = "SELECT d.database_type, d.database_server, d.database_user
 				FROM `databases` d
 				WHERE database_name = '".security::escape($database)."'";
 	}
@@ -139,6 +139,11 @@ $a->setExecute(function() use ($a)
 		break;
 		}
 	}
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('database/update', $a->getParams(), $result['database_user']);
 	
 	responder::send("OK");
 });

@@ -105,6 +105,11 @@ $a->setExecute(function() use ($a)
 	request::forward('/quota/user/internal');
 	syncQuota('DATABASES', $result['database_user']);
 
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('database/delete', $a->getParams(), $result['database_user']);
+	
 	responder::send("OK");
 });
 

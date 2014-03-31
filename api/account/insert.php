@@ -151,7 +151,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// LOG ACTION
 	// =================================	
-	//logger::insert('account/insert', $a->getParams(), $userdata['user_id']);
+	logger::insert('account/insert', $a->getParams(), $userdata['user_id']);
 	
 	responder::send(array("name"=>$account));
 });

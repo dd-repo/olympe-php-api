@@ -164,6 +164,11 @@ $a->setExecute(function() use ($a)
 	// =================================
 	syncQuota('DOMAINS', $user);
 	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('domain/insert', $a->getParams(), $userdata['user_id']);
+	
 	responder::send(array("domain"=>$domain, "id"=>$result['uidNumber']));
 });
 

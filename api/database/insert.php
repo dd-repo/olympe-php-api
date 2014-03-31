@@ -138,6 +138,11 @@ $a->setExecute(function() use ($a)
 	// =================================
 	syncQuota('DATABASES', $user);
 
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('database/insert', $a->getParams(), $userdata['user_id']);
+	
 	responder::send(array("name"=>$base));
 });
 
