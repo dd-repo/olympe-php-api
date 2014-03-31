@@ -214,7 +214,7 @@ $a->setExecute(function() use ($a)
 		
 		$lim = 'LIMIT';
 		if( $start !== null )
-			$lim .= " {$start}"
+			$lim .= " {$start}";
 		else
 			$lim .= " 0";
 		
