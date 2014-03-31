@@ -135,6 +135,11 @@ $a->setExecute(function() use ($a)
 	// =================================
 	syncQuota('SITES', $user);
 
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('site/insert', $a->getParams(), $userdata['user_id']);
+	
 	responder::send(array("name"=>$site, "id"=>$result['uidNumber']));
 });
 

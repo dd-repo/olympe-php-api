@@ -167,6 +167,11 @@ $a->setExecute(function() use ($a)
 	{
 	}
 	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('user/update', $a->getParams(), $result['user_id']);
+	
 	responder::send("OK");
 });
 

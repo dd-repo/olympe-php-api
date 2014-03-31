@@ -92,7 +92,7 @@ $GLOBALS['db']->query($sql, mysql::NO_ROW);
 // =================================
 grantStore::add('TOKEN_CLEANUP');
 request::forward('/token/cleanup');
-
+	
 responder::send("OK");
 
 ?>

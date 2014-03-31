@@ -194,6 +194,11 @@ $a->setExecute(function() use ($a)
 
 	$GLOBALS['ldap']->replace($dn, $params);
 
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('site/update', $a->getParams(), $userdata['user_id']);
+	
 	responder::send("OK");
 });
 

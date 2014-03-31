@@ -111,6 +111,11 @@ $a->setExecute(function() use ($a)
 	request::forward('/quota/user/internal');
 	syncQuota('SITES', $userdata['user_id']);
 
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('site/delete', $a->getParams(), $userdata['user_id']);
+	
 	responder::send("OK");
 });
 
