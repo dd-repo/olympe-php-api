@@ -106,10 +106,7 @@ $a->setExecute(function() use ($a)
 	$commands[] = "rm -Rf {$result['homeDirectory']}";
 	$GLOBALS['system']->exec($commands);
 	
-	// =================================
-	// LOG ACTION
-	// =================================	
-	logger::insertLog('account/delete', '', $userdata['user_id']);
+
 	
 	responder::send("OK");
 });
