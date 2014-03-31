@@ -109,7 +109,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// LOG ACTION
 	// =================================	
-	logger::insertLog('account/delete', $a->getParams(), $userdata['user_id']);
+	logger::insertLog('account/delete', '', $userdata['user_id']);
 	
 	responder::send("OK");
 });
