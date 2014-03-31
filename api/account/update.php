@@ -204,7 +204,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// LOG ACTION
 	// =================================	
-	logger::insertLog('account/update', $a->getParams(), $userdata['user_id']);
+	$params = array();
+	logger::insertLog('account/update', $params, $userdata['user_id']);
 	
 	responder::send("OK");
 });
