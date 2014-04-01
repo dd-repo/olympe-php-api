@@ -119,7 +119,9 @@ $a->setExecute(function() use ($a)
 		$where .= " AND message_status = {$status}";
 	if( $topic === true )
 		$where .= " AND message_parent = 1";
-	
+	if( $parent === true )
+		$where .= " AND message_parent = {$parent}";
+		
 	// =================================
 	// SELECT RECORDS
 	// =================================
