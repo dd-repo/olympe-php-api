@@ -83,7 +83,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $user !== null )
 	{
-		$sql = "SELECT m.message_id FROM users u LEFT JOIN messages m ON(m.message_user = u.user_id) WHERE message_id = {$id}'	AND ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$sql = "SELECT m.message_id FROM users u LEFT JOIN messages m ON(m.message_user = u.user_id) WHERE message_id = {$id} AND ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 		$result = $GLOBALS['db']->query($sql);
 		
 		if( $result == null || $result['message_id'] == null )
