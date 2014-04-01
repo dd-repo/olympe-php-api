@@ -9,58 +9,58 @@ if( !defined('PROPER_START') )
 $a = new action();
 $a->addAlias(array('modify', 'change'));
 $a->setDescription("Modify a news");
-$a->addGrant(array('ACCESS', 'NEWS_UPDATE'));
+$a->addGrant(array('ACCESS', 'MESSAGE_UPDATE'));
 $a->setReturn("OK");
 
 $a->addParam(array(
-	'name'=>array('news_id', 'id'),
-	'description'=>'The id of the news',
+	'name'=>array('message_id', 'id'),
+	'description'=>'The id of the message',
 	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>11,
 	'match'=>request::NUMBER
 	));
 $a->addParam(array(
-	'name'=>array('title', 'news_title'),
-	'description'=>'The news title.',
+	'name'=>array('type', 'message_type'),
+	'description'=>'The message type.',
 	'optional'=>true,
 	'minlength'=>1,
-	'maxlength'=>200,
-	'match'=>request::PHRASE|request::SPECIAL,
+	'maxlength'=>1,
+	'match'=>request::NUMBER
 	));
 $a->addParam(array(
-	'name'=>array('description', 'news_description'),
-	'description'=>'The news description.',
+	'name'=>array('status', 'message_status'),
+	'description'=>'The message status.',
 	'optional'=>true,
 	'minlength'=>1,
-	'maxlength'=>500,
-	'match'=>request::PHRASE|request::SPECIAL,
+	'maxlength'=>1,
+	'match'=>request::NUMBER
 	));
 $a->addParam(array(
-	'name'=>array('content', 'news_content'),
-	'description'=>'The news content.',
+	'name'=>array('title', 'message_title'),
+	'description'=>'The message title.',
 	'optional'=>true,
 	'minlength'=>1,
-	'maxlength'=>5000,
-	'match'=>request::PHRASE|request::SPECIAL,
+	'maxlength'=>150,
+	'match'=>request::ALL
 	));
 $a->addParam(array(
-	'name'=>array('author', 'news_author'),
-	'description'=>'The news author.',
+	'name'=>array('content', 'message'),
+	'description'=>'The message content.',
 	'optional'=>true,
 	'minlength'=>1,
-	'maxlength'=>200,
-	'match'=>request::PHRASE|request::SPECIAL,
+	'maxlength'=>2000,
+	'match'=>request::ALL
 	));
 $a->addParam(array(
-	'name'=>array('language', 'lang', 'news_language'),
-	'description'=>'The news language.',
+	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
+	'description'=>'The name or id of the target user.',
 	'optional'=>true,
-	'minlength'=>2,
-	'maxlength'=>2,
-	'match'=>request::UPPER
+	'minlength'=>0,
+	'maxlength'=>30,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));
-	
+
 $a->setExecute(function() use ($a)
 {
 	// =================================
@@ -72,31 +72,43 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$id = $a->getParam('id');
-	$title = $a->getParam('title');
-	$description = $a->getParam('description');
 	$content = $a->getParam('content');
-	$author = $a->getParam('author');
-	$language = $a->getParam('language');
+	$type = $a->getParam('type');
+	$title = $a->getParam('title');
+	$status = $a->getParam('status');
+	$user = $a->getParam('user');
 	
-	$sql = "SELECT news_id FROM news WHERE news_id = {$id}";
-	$data = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
-	
-	if( !$data['news_id'] )
-		throw new ApiException("Unknown news", 404, "Unknown news : {$id}");
+	// =================================
+	// CHECK OWNER
+	// =================================
+	if( $user !== null )
+	{
+		$sql = "SELECT m.message_id FROM users u LEFT JOIN messages m ON(m.message_user = u.user_id) WHERE message_id = {$id}'	AND ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$result = $GLOBALS['db']->query($sql);
+		
+		if( $result == null || $result['message_id'] == null )
+			throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the message {$message}");
+	}
+	else
+	{
+		$sql = "SELECT m.message_id FROM messages m	WHERE message_id = {$id}";
+		$result = $GLOBALS['db']->query($sql);
+		
+		if( $result == null || $result['message_id'] == null )
+			throw new ApiException("Forbidden", 403, "Message {$message} does not exist");
+	}
 	
 	$set = '';
 	if( $title !== null )
-		$set .= ", news_title = '".security::escape($title)."'";
-	if( $description !== null )
-		$set .= ", news_description = '".security::escape($description)."'";
+		$set .= ", message_title = '".security::escape($title)."'";
 	if( $content !== null )
-		$set .= ", news_content = '".security::escape($content)."'";
-	if( $author !== null )
-		$set .= ", news_author = '".security::escape($author)."'";		
-	if( $language !== null )
-		$set .= ", news_language = '".security::escape($language)."'";	
+		$set .= ", message_content = '".security::escape($content)."'";
+	if( $type !== null )
+		$set .= ", message_type = '".security::escape($type)."'";
+	if( $status !== null )
+		$set .= ", message_status = '".security::escape($status)."'";
 
-	$sql = "UPDATE news SET news_id = news_id {$set} WHERE news_id = {$id}";
+	$sql = "UPDATE messages SET message_id = message_id {$set} WHERE message_id = {$id}";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
 	responder::send("OK");
