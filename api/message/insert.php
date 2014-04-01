@@ -74,7 +74,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// INSERT MESSAGE
 	// =================================
-	$sql = "INSERT INTO `messages` (message_parent, message_title, message_content, message_date, message_user, message_type) VALUE ('".security::escape($parent)."', '".security::escape($title)."', '".security::escape($content)."', UNIX_TIMESTAMP(), '".security::escape($user)."',  '".security::escape($type)."')";
+	$sql = "INSERT INTO `messages` (message_parent, message_title, message_content, message_date, message_user, message_type) VALUE ('".($parent!==null?security::escape($parent):"1")."', '".security::escape($title)."', '".security::escape($content)."', UNIX_TIMESTAMP(), '".security::escape($user)."',  '".security::escape($type)."')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	$id = $GLOBALS['db']->last_id();
 	
