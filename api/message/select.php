@@ -142,15 +142,15 @@ $a->setExecute(function() use ($a)
 		$m['id'] = $r['message_id'];
 		$m['title'] = $r['message_title'];
 		$m['content'] = $r['message_content'];
-		$m['content'] = $r['news_content'];
+		$m['parent'] = $r['message_parent'];
 		$m['date'] = $r['message_date'];
-		$m['author'] = $r['news_author'];
-		$m['language'] = $r['news_language'];
+		$m['type'] = $r['message_type'];
+		$m['status'] = $r['message_status'];
 		
-		$news[] = $n;
+		$messages[] = $m;
 	}
 
-	responder::send($news);
+	responder::send($messages);
 });
 
 return $a;
