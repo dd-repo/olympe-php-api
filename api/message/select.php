@@ -127,7 +127,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$sql = "SELECT m.message_title, m.message_content, m.message_date, m.message_parent, m.message_id, m.message_type, m.message_status, u.user_name, u.user_id, u.user_date
 	FROM messages m LEFT JOIN users u ON(u.user_id = m.message_user)
-	WHERE true {$where} ORDER BY m.message_id DESC LIMIT 0,{$limit}";
+	WHERE m.message_status != 0 {$where} ORDER BY m.message_id DESC LIMIT 0,{$limit}";
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 
 	// =================================
