@@ -35,7 +35,7 @@ $a->addParam(array(
 	'description'=>'The message title.',
 	'optional'=>true,
 	'minlength'=>1,
-	'maxlength'=>200,
+	'maxlength'=>150,
 	'match'=>request::ALL
 	));
 $a->addParam(array(
@@ -78,7 +78,7 @@ $a->setExecute(function() use ($a)
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	$id = $GLOBALS['db']->last_id();
 	
-	responder::send(array("id"=>id));
+	responder::send(array("id"=>$id));
 });
 
 return $a;
