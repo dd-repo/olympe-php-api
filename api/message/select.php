@@ -115,11 +115,11 @@ $a->setExecute(function() use ($a)
 	}
 	if( $id !== null )
 		$where .= " AND message_id = '".security::escape($id)."'";
-	if( $status === true )
+	if( $status !== null )
 		$where .= " AND message_status = {$status}";
 	if( $topic === true )
 		$where .= " AND message_parent = 1";
-	if( $parent === true )
+	if( $parent !== null )
 		$where .= " AND message_parent = {$parent}";
 		
 	// =================================
