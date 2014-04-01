@@ -49,12 +49,12 @@ $a->addParam(array(
 	'match'=>request::NUMBER
 	));
 $a->addParam(array(
-	'name'=>array('unanswered'),
-	'description'=>'Search only unanswered.',
+	'name'=>array('status'),
+	'description'=>'Search only for status.',
 	'optional'=>true,
 	'minlength'=>1,
-	'maxlength'=>5,
-	'match'=>"(1|0|yes|no|true|false)"
+	'maxlength'=>2,
+	'match'=>request::NUMBER
 	));
 $a->addParam(array(
 	'name'=>array('topic'),
@@ -87,15 +87,10 @@ $a->setExecute(function() use ($a)
 	$id = $a->getParam('id');
 	$parent = $a->getParam('parent');
 	$type = $a->getParam('type');
-	$unanswered = $a->getParam('unanswered');
+	$status = $a->getParam('status');
 	$topic = $a->getParam('topic');
 	$limit = $a->getParam('limit');
 	$user = $a->getParam('user');
-	
-	if( $unanswered == '1' || $unanswered == 'yes' || $unanswered == 'true' || $unanswered === true || $unanswered === 1 )
-		$unanswered = true;
-	else
-		$unanswered = false;
 		
 	if( $topic == '1' || $topic == 'yes' || $topic == 'true' || $topic === true || $topic === 1 )
 		$topic = true;
@@ -120,15 +115,15 @@ $a->setExecute(function() use ($a)
 	}
 	if( $id !== null )
 		$where .= " AND message_id = '".security::escape($id)."'";
-	if( $unanswered === true )
-		$where .= " AND message_status = 1";
+	if( $status === true )
+		$where .= " AND message_status = {$status}";
 	if( $topic === true )
-		$where .= " AND message_parent = NULL";
+		$where .= " AND message_parent = 1";
 	
 	// =================================
 	// SELECT RECORDS
 	// =================================
-	$sql = "SELECT m.message_title, m.message_content, m.message_date, m.message_parent, m.message_id, m.message_type, m.message_status, u.user_name, u.user_id
+	$sql = "SELECT m.message_title, m.message_content, m.message_date, m.message_parent, m.message_id, m.message_type, m.message_status, u.user_name, u.user_id, u.user_date
 	FROM messages m LEFT JOIN users u ON(u.user_id = m.message_user)
 	WHERE true {$where} ORDER BY m.message_id DESC LIMIT 0,{$limit}";
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
@@ -146,7 +141,7 @@ $a->setExecute(function() use ($a)
 		$m['date'] = $r['message_date'];
 		$m['type'] = $r['message_type'];
 		$m['status'] = $r['message_status'];
-		$m['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name']);
+		$m['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name'], 'date'=>$r['user_date']);
 		
 		$messages[] = $m;
 	}
