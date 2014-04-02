@@ -48,7 +48,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT RECORDS
 	// =================================
-	$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_status, u.user_date, u.user_last_notification, q.quota_id, q.quota_name, uq.quota_max, uq.quota_used
+	$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_status, u.user_date, u.user_last_update, q.quota_id, q.quota_name, uq.quota_max, uq.quota_used
 			FROM users u
 			LEFT JOIN user_quota uq ON(u.user_id = uq.user_id)
 			LEFT JOIN quotas q ON(uq.quota_id = q.quota_id)
@@ -65,7 +65,7 @@ $a->setExecute(function() use ($a)
 	{
 		if( $r['quota_max'] != 0 && round(($r['quota_used']*100)/$r['quota_max']) >= 80 )
 		{
-			$user = array('name'=>$r['user_name'], 'id'=>$r['user_id'], 'uid'=>$r['user_ldap'], 'firstname'=>'', 'lastname'=>'', 'email'=>'', 'status'=>$r['user_status'], 'date'=>$r['user_date'], 'ip'=>'', 'last'=>$r['user_last_notification']);
+			$user = array('name'=>$r['user_name'], 'id'=>$r['user_id'], 'uid'=>$r['user_ldap'], 'firstname'=>'', 'lastname'=>'', 'email'=>'', 'status'=>$r['user_status'], 'date'=>$r['user_date'], 'ip'=>'', 'last'=>$r['user_last_update']);
 			$user['quotas'] = array('id'=>$r['quota_id'], 'name'=>$r['quota_name'], 'max'=>$r['quota_max'], 'used'=>$r['quota_used']);
 			
 			$users[] = $user;
