@@ -105,6 +105,14 @@ $a->addParam(array(
 	'match'=>"(ASC|DESC)"
 	));
 $a->addParam(array(
+	'name'=>array('group'),
+	'description'=>'Group by?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>request::UPPER
+	));
+$a->addParam(array(
 	'name'=>array('limit'),
 	'description'=>'Limit response.',
 	'optional'=>true,
@@ -133,6 +141,7 @@ $a->setExecute(function() use ($a)
 	$search = $a->getParam('search');
 	$order = $a->getParam('order');
 	$order_type = $a->getParam('order_type');
+	$group = $a->getParam('group');
 	$limit = $a->getParam('limit');
 	
 	// =================================
@@ -226,7 +235,7 @@ $a->setExecute(function() use ($a)
 		responder::send($result);
 	}
 	
-	if( $quota )
+	if( $quota === true )
 	{
 		$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_status, u.user_date, u.user_last_update, q.quota_id, q.quota_name, uq.quota_max, uq.quota_used
 				FROM users u
@@ -235,6 +244,11 @@ $a->setExecute(function() use ($a)
 				WHERE false {$where_name} {$where_id} {$where}
 				ORDER BY {$order} {$order_type}
 				LIMIT 0,{$limit}";
+	}
+	else if( $group !== null )
+	{
+		$sql = "SELECT COUNT(user_id) as count, {$group} (FROM_UNIXTIME(user_date)) as {$group} FROM users
+				WHERE false {$where_name} {$where_id} {$where} GROUP BY {$group} (FROM_UNIXTIME(user_date))";
 	}
 	else
 	{
@@ -245,7 +259,10 @@ $a->setExecute(function() use ($a)
 				LIMIT 0,{$limit}";
 	}
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
-			
+		
+	if( $group !== null )
+		responder::send($result);
+	
 	// =================================
 	// FORMAT RESULT
 	// =================================
