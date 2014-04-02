@@ -107,8 +107,9 @@ $a->setExecute(function() use ($a)
 		// =================================
 		syncQuota('BYTES', $r['user_id']);
 	}
-	
-	$sql = "UPDATE users SET user_last_update = UNIX_TIMESTAMP() WHERE user_id = {$result['user_id']}";
+
+	$time = time();
+	$sql = "UPDATE users SET user_last_update = {$time} WHERE user_id = {$result['user_id']}";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	responder::send("OK");
