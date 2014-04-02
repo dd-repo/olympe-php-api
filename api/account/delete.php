@@ -98,7 +98,13 @@ $a->setExecute(function() use ($a)
 	// UPDATE REMOTE USER
 	// =================================
 	$mod['member'] = $dn;
-	$GLOBALS['ldap']->replace($user_dn, $mod, ldap::DELETE);
+	try
+	{
+		$GLOBALS['ldap']->replace($user_dn, $mod, ldap::DELETE);
+	}
+	catch(Exception $e)
+	{
+	}
 	
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
