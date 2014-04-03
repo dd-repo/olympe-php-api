@@ -80,7 +80,7 @@ $a->setExecute(function() use ($a)
 		
 		if( $result['database_name'] )
 		{
-			$identifier = md5($result['database_name'] . time() . rand(11111111, 99999999) );
+			$identifier = md5($result['database_name'] . time() . rand(11111111, 99999999) ) . '.sql';
 			$commands[] = "/dns/tm/sys/usr/local/bin/dump {$result['database_type']} {$result['database_name']} {$identifier} {$result['database_server']}";
 			$GLOBALS['system']->exec($commands);
 			
