@@ -9,7 +9,10 @@ if( !defined('PROPER_START') )
 $i = new index();
 $i->addAlias(array('backup', 'backups'));
 $i->setDescription("A backup is a dump of files or databases.");
-$i->addEntry('get', array('get', 'download', 'new'));
+$i->addEntry('insert', array('insert', 'create', 'add'));
+$i->addEntry('select', array('select', 'list', 'view', 'search'));
+$i->addEntry('update', array('update', 'change', 'rename', 'modify'));
+$i->addEntry('delete', array('delete', 'remove', 'del', 'destroy'));
 
 return $i;
 

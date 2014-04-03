@@ -55,6 +55,8 @@ $i->addEntry('subdomain', array('subdomain', 'subdomains'));
 $i->addEntry('site', array('site', 'sites'));
 $i->addEntry('database', array('database', 'databases'));
 $i->addEntry('message', array('message', 'messages'));
+$i->addEntry('log', array('log', 'logs'));
+$i->addEntry('backup', array('backup', 'backups'));
 
 return $i;
 
