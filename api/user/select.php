@@ -174,7 +174,7 @@ $a->setExecute(function() use ($a)
 	// =================================	
 	if( $mail !== null && count($user) == 0 )
 	{
-		$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::USER, "(mailForwardingAddress={$mail})"));
+		$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::USER, "(mailForwardingAddress=*{$mail}*)"));
 		
 		$user = array();
 		foreach( $result as $r )
