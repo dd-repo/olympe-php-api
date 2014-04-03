@@ -94,6 +94,8 @@ $i->addEntry('account', array('account', 'accounts'));
 $i->addEntry('database', array('database', 'databases'));
 $i->addEntry('news', array('news'));
 $i->addEntry('message', array('message', 'messages'));
+$i->addEntry('backup', array('backup', 'backups'));
+$i->addEntry('log', array('log', 'logs'));
 $i->addEntry('test', array('test', 'hello'));
 
 return $i;
