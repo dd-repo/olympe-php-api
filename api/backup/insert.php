@@ -85,7 +85,7 @@ $a->setExecute(function() use ($a)
 			$GLOBALS['system']->exec($commands);
 			
 			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', 'Backup of database {$result['database_name']}', {$userdata['user_id']}, 'database', 'https://download.olympe.in/{$identifier}.gz', UNIX_TIMESTAMP())";
-			$GLOBALS['db']->query($sql, mysql::NOW_ROW);
+			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 		else
 			throw new ApiException("Forbidden", 302, "The database or the site does not belong to you.");
