@@ -107,7 +107,7 @@ $a->setExecute(function() use ($a)
 		
 		if( $result['homeDirectory'] )
 		{
-			$identifier = md5($result['homeDirectory'] . time() . rand(11111111, 99999999) );
+			$identifier = md5($result['homeDirectory'] . time() . rand(11111111, 99999999) ) . '.tar';
 			$commands[] = "/dns/tm/sys/usr/local/bin/dump site {$result['homeDirectory']} {$identifier}";
 			$GLOBALS['system']->exec($commands);
 			
