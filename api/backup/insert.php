@@ -108,7 +108,7 @@ $a->setExecute(function() use ($a)
 		if( $result['homeDirectory'] )
 		{
 			$identifier = md5($result['homeDirectory'] . time() . rand(11111111, 99999999) ) . '.tar';
-			$commands[] = "/dns/tm/sys/usr/local/bin/dump site {$result['homeDirectory']} {$identifier} {$userdata['user_ldap']}";
+			$commands[] = "/dns/tm/sys/usr/local/bin/dump site {$result['homeDirectory']} {$identifier} {$result['gidNumber']}";
 			$GLOBALS['system']->exec($commands);
 			
 			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', 'Backup {$result['associatedDomain']}', {$userdata['user_id']}, 'site', 'https://download.olympe.in/{$identifier}.gz', UNIX_TIMESTAMP())";
