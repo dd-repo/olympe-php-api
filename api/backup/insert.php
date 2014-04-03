@@ -91,7 +91,7 @@ $a->setExecute(function() use ($a)
 			throw new ApiException("Forbidden", 302, "The database or the site does not belong to you.");
 	}
 	
-	responder::send(array('url'=>"https://download.olympe.in/{$identifier}.gz");
+	responder::send(array('url'=>"https://download.olympe.in/{$identifier}.gz"));
 });
 
 return $a;
