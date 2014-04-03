@@ -52,7 +52,7 @@ $a->setExecute(function() use ($a)
 	// =================================	
 	$dn = ldap::buildDN(ldap::USER, $GLOBALS['CONFIG']['DOMAIN'], $result['user_name']);
 	$data = $GLOBALS['ldap']->read($dn);
-	
+
 	if( $dn )
 	{
 		// =================================
@@ -66,6 +66,7 @@ $a->setExecute(function() use ($a)
 			if( $s['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($s['dn']);
+				$commands = array();
 				$commands[] = "rm -Rf {$s['homeDirectory']}";
 				$GLOBALS['system']->exec($commands);
 			}
@@ -82,6 +83,7 @@ $a->setExecute(function() use ($a)
 			if( $d['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($d['dn']);
+				$commands = array();
 				$commands[] = "rm -Rf {$d['homeDirectory']}";
 				$GLOBALS['system']->exec($commands);
 			}
@@ -99,8 +101,8 @@ $a->setExecute(function() use ($a)
 			{
 				case 'mysql':
 					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+					mysql_query("DROP DATABASE '{$database}'", $link);
 					mysql_query("DROP USER '{$database}'", $link);
-					mysql_query("DROP DATABASE `{$database}`", $link);
 					mysql_close($link);
 				break;	
 			}
@@ -130,6 +132,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
+	$date = date('YmdHis');
+	$commands = array();
 	$commands[] = "rm -Rf {$data['homeDirectory']}";
 	$GLOBALS['system']->exec($commands);
 	

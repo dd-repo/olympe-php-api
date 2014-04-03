@@ -42,7 +42,7 @@ $a->addParam(array(
 	'description'=>'The CNAME Record of the subdomain.',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>20,
+	'maxlength'=>150,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
@@ -122,6 +122,11 @@ $a->setExecute(function() use ($a)
 	}
 
 	$GLOBALS['ldap']->replace($dn, $params);
+
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('subdomain/update', $a->getParams(), $userdata['user_id']);
 
 	responder::send("OK");
 });

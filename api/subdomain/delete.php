@@ -99,6 +99,11 @@ $a->setExecute(function() use ($a)
 	$commands[] = "rm -Rf {$data['homeDirectory']}";
 	$GLOBALS['system']->exec($commands);
 	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('subdomain/delete', $a->getParams(), $userdata['user_id']);
+
 	responder::send("OK");
 });
 

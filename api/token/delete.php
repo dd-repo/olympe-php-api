@@ -65,7 +65,7 @@ $sql = "DELETE t FROM tokens t
 		LEFT JOIN users u ON(t.token_user = u.user_id)
 		WHERE token_value='{$value}' AND {$where}";
 $GLOBALS['db']->query($sql, mysql::NO_ROW);
-
+	
 responder::send("OK");
 
 ?>

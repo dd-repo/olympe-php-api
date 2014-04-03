@@ -68,21 +68,33 @@ function syncQuota($type, $user)
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 			$count = $result['c'];
 			break;
-		case 'BYTES':
-			$sql = "SELECT user_ldap, user_id FROM users u WHERE {$where}";
+		case 'BYTES':			
+			$sql = "SELECT user_ldap, user_id, user_name FROM users u WHERE {$where}";
 			$userdata = $GLOBALS['db']->query($sql);
 			if( $userdata == null || $userdata['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+				
+			$sql = "SELECT quota_max FROM user_quota WHERE quota_id = 13 AND user_id = {$userdata['user_id']}";
+			$quotadata = $GLOBALS['db']->query($sql);
+			
 			$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
 			$usage = 0;
-			$usage = $GLOBALS['system']->getquota($userdata['user_ldap']);
+			$usage = $GLOBALS['system']->getquota($userdata['user_ldap'], 'group', $quotadata['quota_max']);
 			$usage = round($usage/1024);
-			
+
+			$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/dns/in/olympe/Users/{$userdata['user_name']}'";
+			$store = $GLOBALS['db']->query($sql);
+			if( $store['storage_id'] )
+				$sql = "UPDATE storages SET storage_size = {$usage} WHERE storage_id = {$store['storage_id']}";
+			else
+				$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/dns/in/olympe/Users/{$userdata['user_name']}', {$usage})";
+			$GLOBALS['db']->query($sql, mysql::NO_ROW);
+				
 			$sites = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $GLOBALS['CONFIG']['DOMAIN']), ldap::buildFilter(ldap::SUBDOMAIN, "(owner={$user_dn})"));
 			foreach( $sites as $s )
 			{
 				$u = 0;
-				$u = $GLOBALS['system']->getquota($s['uidNumber'], 'user');
+				$u = $GLOBALS['system']->getquota($s['uidNumber'], 'user', $quotadata['quota_max']);
 				$u = round($u/1024);
 				
 				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '{$s['homeDirectory']}'";
@@ -100,7 +112,7 @@ function syncQuota($type, $user)
 			foreach( $users as $user )
 			{
 				$u = 0;
-				$u = $GLOBALS['system']->getquota($user['uidNumber'], 'user');
+				$u = $GLOBALS['system']->getquota($user['uidNumber'], 'user', $quotadata['quota_max']);
 				$u = round($u/1024);
 				
 				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '{$user['homeDirectory']}'";
@@ -109,6 +121,27 @@ function syncQuota($type, $user)
 					$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
 				else
 					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('{$user['homeDirectory']}', {$u})";
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);
+				
+				$usage = $usage+$u;
+			}
+			
+			$sql = "SELECT * FROM `databases` WHERE database_user = {$userdata['user_id']}";
+			$databases = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+			foreach( $databases as $d )
+			{
+				$u = 0;
+				$u = $GLOBALS['system']->getdatabasesize($d['database_name'], $d['database_type'], $d['database_server']);
+				$u = round($u/1024);
+				if( $d['database_type'] == 'pgsql' )
+					$u = round($u/1024);
+
+				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/databases/{$d['database_name']}'";
+				$store = $GLOBALS['db']->query($sql);
+				if( $store['storage_id'] )
+					$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
+				else
+					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/databases/{$d['database_name']}', {$u})";
 				$GLOBALS['db']->query($sql, mysql::NO_ROW);
 				
 				$usage = $usage+$u;

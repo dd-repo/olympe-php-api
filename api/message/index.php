@@ -7,16 +7,12 @@ if( !defined('PROPER_START') )
 }
 
 $i = new index();
-$i->addAlias(array('site', 'sites'));
-$i->setDescription("A site is a websiste space.");
+$i->addAlias(array('message', 'messages'));
+$i->setDescription("A message is a text sent between users & the team.");
 $i->addEntry('insert', array('insert', 'create', 'add'));
 $i->addEntry('select', array('select', 'list', 'view', 'search'));
 $i->addEntry('update', array('update', 'change', 'rename', 'modify'));
 $i->addEntry('delete', array('delete', 'remove', 'del', 'destroy'));
-$i->addEntry('response', array('response', 'responsetime', 'time', 'delay'));
-$i->addEntry('setrate', array('setrate'));
-$i->addEntry('getrate', array('getrate'));
-
 return $i;
 
 ?>

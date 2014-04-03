@@ -71,7 +71,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $user !== null )
 	{
-		$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 		$userdata = $GLOBALS['db']->query($sql);
 		
 		if( $userdata == null || $userdata['user_ldap'] == null )
@@ -98,13 +98,24 @@ $a->setExecute(function() use ($a)
 	// UPDATE REMOTE USER
 	// =================================
 	$mod['member'] = $dn;
-	$GLOBALS['ldap']->replace($user_dn, $mod, ldap::DELETE);
+	try
+	{
+		$GLOBALS['ldap']->replace($user_dn, $mod, ldap::DELETE);
+	}
+	catch(Exception $e)
+	{
+	}
 	
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "rm -Rf {$data['homeDirectory']}";
+	$commands[] = "rm -Rf {$result['homeDirectory']}";
 	$GLOBALS['system']->exec($commands);
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('account/delete', $a->getParams(), $userdata['user_id']);
 	
 	responder::send("OK");
 });

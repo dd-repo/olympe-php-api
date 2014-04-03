@@ -64,7 +64,15 @@ $a->addParam(array(
 	'maxlength'=>50,
 	'match'=>request::ALL
 	));
-
+$a->addParam(array(
+	'name'=>array('language', 'lang'),
+	'description'=>'The user language.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>2,
+	'match'=>request::UPPER
+	));
+	
 $a->setExecute(function() use ($a)
 {
 	// =================================
@@ -81,6 +89,7 @@ $a->setExecute(function() use ($a)
 	$lastname = $a->getParam('lastname');
 	$mail = $a->getParam('mail');
 	$ip = $a->getParam('ip');
+	$language = $a->getParam('language');
 	
 	if( is_numeric($user) )
 		throw new ApiException("Parameter validation failed", 412, "Parameter user may not be numeric : " . $user);
@@ -126,7 +135,9 @@ $a->setExecute(function() use ($a)
 		$params['mailForwardingAddress'] = $mail;
 	if( $ip !== null )
 		$params['ipHostNumber'] = security::escape($ip);
-	
+	if( $language !== null )
+		$params['gecos'] = $language;
+		
 	$handler = new user();
 	$data = $handler->build($params);
 	
@@ -151,6 +162,11 @@ $a->setExecute(function() use ($a)
 	$data['domain'] = $GLOBALS['CONFIG']['DOMAIN'];
 	$commands[] = "mkdir -p {$data['homeDirectory']} && chown 33:{$data['gidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod g+s {$data['homeDirectory']}";
 	$GLOBALS['system']->exec($commands);
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('user/insert', $a->getParams(), $uid);
 	
 	responder::send(array("name"=>$user, "id"=>$uid));
 });

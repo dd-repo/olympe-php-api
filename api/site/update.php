@@ -34,17 +34,49 @@ $a->addParam(array(
 	'description'=>'The CNAME Record of the site.',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>20,
+	'maxlength'=>150,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
-	'name'=>array('pass', 'password', 'account_password', 'account_pass'),
-	'description'=>'The password of the account.',
+	'name'=>array('pass', 'password', 'site_password', 'site_pass'),
+	'description'=>'The password of the site.',
 	'optional'=>true,
 	'minlength'=>3,
 	'maxlength'=>50,
 	'match'=>request::PHRASE|request::SPECIAL,
 	'action'=>true
+	));
+$a->addParam(array(
+	'name'=>array('directory'),
+	'description'=>'Whether or not to include this site in the global directory?.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
+	'name'=>array('title', 'site_title'),
+	'description'=>'The title of the site.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>30,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
+	'name'=>array('category', 'site_category'),
+	'description'=>'The category of the site.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>2,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
+	'name'=>array('description', 'site_description'),
+	'description'=>'The description of the site.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>500,
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
@@ -70,7 +102,14 @@ $a->setExecute(function() use ($a)
 	$arecord = $a->getParam('arecord');
 	$cnamerecord = $a->getParam('cnamerecord');
 	$pass = $a->getParam('pass');
+	$directory = $a->getParam('directory');
+	$title = $a->getParam('title');
+	$category = $a->getParam('category');
+	$description = $a->getParam('description');
 	$user = $a->getParam('user');
+	
+	if( $directory == '1' || $directory == 'yes' || $directory == 'true' || $directory === true || $directory === 1 ) $directory = true;
+	else if( $directory == '0' || $directory == 'no' || $directory == 'false' || $directory === false || $directory === 0 ) $directory = false;
 	
 	// =================================
 	// GET REMOTE INFO
@@ -111,9 +150,37 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// UPDATE REMOTE SITE
 	// =================================
+	$set = '';
+	$insert = '';
+	if( $title !== null )
+		$set .= ", site_title = '".security::escape($title)."'";
+	if( $description !== null )
+		$set .= ", site_description = '".security::escape($description)."'";
+	if( $category !== null )
+		$set .= ", site_category = '".security::escape($category)."'";
+	if( $directory === true )
+		$set .= ", site_status = 1";
+	else if( $directory === false )
+		$set .= ", site_status = 0";
+
+	if( strlen($set) > 0 )
+	{
+		$sql = "SELECT site_id FROM directory WHERE site_ldap_id = {$result['uidNumber']}";
+		$test = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+		
+		if( $test['site_id'] )
+			$sql = "UPDATE directory SET site_id = site_id {$set} WHERE site_ldap_id = {$result['uidNumber']}";
+		else
+		{
+			$sql = "INSERT INTO directory (site_ldap_id, site_owner, site_title, site_description, site_url, site_category, site_date) 
+			VALUES ('{$result['uidNumber']}',  '{$userdata['user_ldap']}', '".security::escape($title)."',  '".security::escape($description)."', '{$result['associatedDomain']}', '".security::escape($category)."', UNIX_TIMESTAMP())"; 
+		}
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	}
+	
 	if( $pass !== null )
 		$params['userPassword'] = $pass;
-
+	
 	if( $arecord !== null )
 	{
 		$params = array('aRecord'=>$arecord);
@@ -127,6 +194,11 @@ $a->setExecute(function() use ($a)
 
 	$GLOBALS['ldap']->replace($dn, $params);
 
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('site/update', $a->getParams(), $userdata['user_id']);
+	
 	responder::send("OK");
 });
 

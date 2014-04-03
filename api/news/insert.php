@@ -20,7 +20,7 @@ $a->addParam(array(
 	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>200,
-	'match'=>request::PHRASE|request::SPECIAL,
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('description', 'news_description'),
@@ -28,7 +28,7 @@ $a->addParam(array(
 	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>500,
-	'match'=>request::PHRASE|request::SPECIAL,
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('content', 'news_content'),
@@ -36,15 +36,15 @@ $a->addParam(array(
 	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>5000,
-	'match'=>request::PHRASE|request::SPECIAL,
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('author', 'news_author'),
 	'description'=>'The news author.',
 	'optional'=>false,
 	'minlength'=>1,
-	'maxlength'=>200,
-	'match'=>request::PHRASE|request::SPECIAL,
+	'maxlength'=>11,
+	'match'=>request::NUMBER
 	));
 $a->addParam(array(
 	'name'=>array('language', 'lang', 'news_language'),
