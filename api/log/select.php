@@ -112,7 +112,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT RECORDS
 	// =================================
-	$sql = "SELECT l.log_id, l.log_method, l.log_params l.log_date, l.log_ip, u.user_id, u.user_name 
+	$sql = "SELECT l.log_id, l.log_method, l.log_params, l.log_date, l.log_ip, u.user_id, u.user_name 
 			FROM user_log l
 			LEFT JOIN users u ON(u.user_id = l.log_user)
 			WHERE true {$where} ORDER BY log_date DESC LIMIT {$start},{$end}";
