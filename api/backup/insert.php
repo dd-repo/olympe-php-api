@@ -84,17 +84,42 @@ $a->setExecute(function() use ($a)
 			$commands[] = "/dns/tm/sys/usr/local/bin/dump {$result['database_type']} {$result['database_name']} {$identifier} {$result['database_server']}";
 			$GLOBALS['system']->exec($commands);
 			
-			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', 'Backup of database {$result['database_name']}', {$userdata['user_id']}, 'database', 'https://download.olympe.in/{$identifier}.gz', UNIX_TIMESTAMP())";
+			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', '{$result['database_name']} ({$result['database_desc']})', {$userdata['user_id']}, 'database', 'https://download.olympe.in/{$identifier}.gz', UNIX_TIMESTAMP())";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 		else
 			throw new ApiException("Forbidden", 302, "The database or the site does not belong to you.");
 	}
+	else if( $site !== null )
+	{
+		if( is_numeric($site) )
+			$dn = $GLOBALS['ldap']->getDNfromUID($site);
+		else
+			$dn = ldap::buildDN(ldap::SUBDOMAIN, $GLOBALS['CONFIG']['DOMAIN'], $site);
+		
+		$result = $GLOBALS['ldap']->read($dn);
+		
+		if( is_array($result['owner']) )
+			$result['owner'] = $result['owner'][0];
+			
+		if( $user !== null && $GLOBALS['ldap']->getUIDfromDN($result['owner']) != $userdata['user_ldap'] )
+			throw new ApiException("Forbidden", 403, "User {$user} ({$userdata['user_ldap']}) does not match owner of the site {$site} ({$result['gidNumber']})");
+		
+		if( $result['homeDirectory'] )
+		{
+			$identifier = md5($result['homeDirectory'] . time() . rand(11111111, 99999999) );
+			$commands[] = "/dns/tm/sys/usr/local/bin/dump site {$result['homeDirectory']} {$identifier}";
+			$GLOBALS['system']->exec($commands);
+			
+			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', '{$result['site']} ({$result['associatedDomain']})', {$userdata['user_id']}, 'site', 'https://download.olympe.in/{$identifier}.gz', UNIX_TIMESTAMP())";
+			$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		}
+	}
 	
 	// =================================
 	// LOG ACTION
 	// =================================	
-	logger::insert('backup/INSERT', $a->getParams(), $userdata['user_id']);
+	logger::insert('backup/insert', $a->getParams(), $userdata['user_id']);
 	
 	responder::send(array('url'=>"https://download.olympe.in/{$identifier}.gz"));
 });
