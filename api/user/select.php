@@ -38,7 +38,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>150,
-	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('from'),
