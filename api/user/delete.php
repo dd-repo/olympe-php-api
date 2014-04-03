@@ -66,9 +66,8 @@ $a->setExecute(function() use ($a)
 			if( $s['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($s['dn']);
-				$commands = array();
-				$commands[] = "rm -Rf {$s['homeDirectory']}";
-				$GLOBALS['system']->exec($commands);
+				$command = "rm -Rf {$s['homeDirectory']}";
+				$GLOBALS['gearman']->sendAsync($command);
 			}
 		}
 		
@@ -83,9 +82,8 @@ $a->setExecute(function() use ($a)
 			if( $d['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($d['dn']);
-				$commands = array();
-				$commands[] = "rm -Rf {$d['homeDirectory']}";
-				$GLOBALS['system']->exec($commands);
+				$command = "rm -Rf {$d['homeDirectory']}";
+				$GLOBALS['gearman']->sendAsync($command);
 			}
 		}
 
@@ -105,6 +103,14 @@ $a->setExecute(function() use ($a)
 					mysql_query("DROP USER '{$database}'", $link);
 					mysql_close($link);
 				break;	
+				case 'pgsql':
+					$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$database}";
+					$GLOBALS['system']->exec($commands);
+				break;
+				case 'mongodb':
+					$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$database}";
+					$GLOBALS['system']->exec($commands);
+				break;
 			}
 
 			$sql = "DELETE FROM `databases` WHERE database_name = '".security::escape($database)."'";
@@ -133,9 +139,8 @@ $a->setExecute(function() use ($a)
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
 	$date = date('YmdHis');
-	$commands = array();
-	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	$GLOBALS['system']->exec($commands);
+	$command = "rm -Rf {$data['homeDirectory']}";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	responder::send("OK");
 });
