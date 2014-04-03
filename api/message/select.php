@@ -98,7 +98,7 @@ $a->setExecute(function() use ($a)
 		$topic = false;
 	
 	if( $limit === null )
-		$limit = 5;
+		$limit = 100;
 	
 	// =================================
 	// PREPARE WHERE CLAUSE
