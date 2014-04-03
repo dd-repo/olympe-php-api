@@ -131,7 +131,7 @@ $a->setExecute(function() use ($a)
 		$l['method'] = $r['log_method'];
 		$l['params'] = $r['log_params'];
 		$l['ip'] = $r['log_ip'];
-		$l['date'] = $storage['log_date'];
+		$l['date'] = $r['log_date'];
 		$l['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name']);
 		
 		$logs[] = $l;
