@@ -89,7 +89,7 @@ $a->setExecute(function() use ($a)
 		$b['identifier'] = $r['backup_identifier'];
 		$b['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name']);
 		
-		$backups[] = $l;
+		$backups[] = $b;
 	}
 
 	responder::send($backups);
