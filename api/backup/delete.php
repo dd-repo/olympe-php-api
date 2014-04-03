@@ -50,7 +50,7 @@ $a->setExecute(function() use ($a)
 		$sql = "SELECT b.backup_id, b.backup_user, b.backup_identifier
 				FROM users u
 				LEFT JOIN backups b ON(b.backup_user = u.user_id)
-				WHERE backup_id = {$backup}'
+				WHERE backup_id = {$backup}
 				AND ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 		$result = $GLOBALS['db']->query($sql);
 		
