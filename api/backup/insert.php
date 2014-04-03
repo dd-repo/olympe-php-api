@@ -80,8 +80,8 @@ $a->setExecute(function() use ($a)
 		
 		if( $result['database_name'] )
 		{
-			$identifier = md5($database['database_name'] . time() . rand(11111111, 99999999) );
-			$commands[] = "/dns/tm/sys/usr/local/bin/dump {$result['database_type']} {$database['database_name']} {$identifier} {$result['database_server']}";
+			$identifier = md5($result['database_name'] . time() . rand(11111111, 99999999) );
+			$commands[] = "/dns/tm/sys/usr/local/bin/dump {$result['database_type']} {$result['database_name']} {$identifier} {$result['database_server']}";
 			$GLOBALS['system']->exec($commands);
 			
 			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', 'Backup of database {$result['database_name']}', {$userdata['user_id']}, 'database', 'https://download.olympe.in/{$identifier}.gz', UNIX_TIMESTAMP())";
