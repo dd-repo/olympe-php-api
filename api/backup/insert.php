@@ -84,7 +84,7 @@ $a->setExecute(function() use ($a)
 			$commands[] = "/dns/tm/sys/usr/local/bin/dump {$result['database_type']} {$result['database_name']} {$identifier} {$result['database_server']}";
 			$GLOBALS['system']->exec($commands);
 			
-			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', '{$result['database_name']} ({$result['database_desc']})', {$userdata['user_id']}, 'database', 'https://download.olympe.in/{$identifier}.gz', UNIX_TIMESTAMP())";
+			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', 'Backup {$result['database_name']} ({$result['database_desc']})', {$userdata['user_id']}, 'database', 'https://download.olympe.in/{$identifier}.gz', UNIX_TIMESTAMP())";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 		else
@@ -111,7 +111,7 @@ $a->setExecute(function() use ($a)
 			$commands[] = "/dns/tm/sys/usr/local/bin/dump site {$result['homeDirectory']} {$identifier}";
 			$GLOBALS['system']->exec($commands);
 			
-			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', '{$result['site']} ({$result['associatedDomain']})', {$userdata['user_id']}, 'site', 'https://download.olympe.in/{$identifier}.gz', UNIX_TIMESTAMP())";
+			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', 'Backup {$result['associatedDomain']}', {$userdata['user_id']}, 'site', 'https://download.olympe.in/{$identifier}.gz', UNIX_TIMESTAMP())";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 	}
