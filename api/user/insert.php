@@ -27,7 +27,7 @@ $a->addParam(array(
 	'name'=>array('pass', 'password', 'user_password', 'user_pass'),
 	'description'=>'The password of the user.',
 	'optional'=>false,
-	'minlength'=>3,
+	'minlength'=>6,
 	'maxlength'=>50,
 	'match'=>request::PHRASE|request::SPECIAL,
 	'action'=>true
