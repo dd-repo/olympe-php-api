@@ -68,6 +68,12 @@ $a->setExecute(function() use ($a)
 				$GLOBALS['ldap']->delete($s['dn']);
 				$command = "rm -Rf {$s['homeDirectory']}";
 				$GLOBALS['gearman']->sendAsync($command);
+				
+				// =================================
+				// DELETE DIRECTORY ENTRY
+				// =================================
+				$sql = "DELETE FROM directory WHERE site_ldap_id = {$s['uidNumber']}";
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);
 			}
 		}
 		
