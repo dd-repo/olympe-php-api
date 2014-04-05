@@ -116,12 +116,12 @@ $a->setExecute(function() use ($a)
 			mysql_close($link);
 		break;
 		case 'pgsql':
-			$server = 'sql.olympe.in';
+			$server = 'pgsql.olympe.in';
 			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$base} {$pass} {$server}";
 			$GLOBALS['system']->exec($commands);
 		break;
 		case 'mongodb':
-			$server = 'sql.olympe.in';
+			$server = 'mongo.olympe.in';
 			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$base} {$pass} {$server}";
 			$GLOBALS['system']->exec($commands);
 		break;
