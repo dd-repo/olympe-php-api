@@ -131,7 +131,7 @@ function syncQuota($type, $user)
 			foreach( $databases as $d )
 			{
 				$u = 0;
-				$u = $GLOBALS['system']->getdatabasesize($d['database_name'], $d['database_type'], $d['database_server']);
+				$u = $GLOBALS['system']->getservicesize($d['database_name'], $d['database_type'], $d['database_server']);
 				$u = round($u/1024);
 				if( $d['database_type'] == 'pgsql' )
 					$u = round($u/1024);
