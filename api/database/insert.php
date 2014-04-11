@@ -107,7 +107,7 @@ $a->setExecute(function() use ($a)
 			if( $server == 'sql.olympe.in' || $server == 'sql1.olympe.in' )
 				$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
 			else if( $server == 'sql2.olympe.in' )
-				$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'],'mysql',  $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2']);
+				$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2']);
 			$link->query("CREATE USER '{$base}'@'%' IDENTIFIED BY '{$pass}'");
 			$link->query("CREATE DATABASE `{$base}` CHARACTER SET utf8 COLLATE utf8_unicode_ci");
 			$link->query("GRANT USAGE ON * . * TO '{$base}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0");
