@@ -96,7 +96,7 @@ $a->setExecute(function() use ($a)
 		// =================================
 		// DATABASES
 		// =================================
-		$sql = "SELECT d.database_type, d.database_name FROM `databases` d WHERE database_user = '{$result['user_id']}'";
+		$sql = "SELECT d.database_type, d.database_name, d.database_server FROM `databases` d WHERE database_user = '{$result['user_id']}'";
 		$databases = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 	
 		foreach( $databases as $d )
@@ -104,23 +104,22 @@ $a->setExecute(function() use ($a)
 			switch( $result['database_type'] )
 			{
 				case 'mysql':
-					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-					mysql_query("DROP DATABASE '{$database}'", $link);
-					mysql_query("DROP USER '{$database}'", $link);
-					mysql_close($link);
+					if( $d['database_server'] == 'sql.olympe.in' || $d['database_server'] == 'sql1.olympe.in' )
+					$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
+				else if( $d['database_server'] == 'sql2.olympe.in' )
+					$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2']);
+					$link->query("DROP DATABASE '{$d['database_name']}'");
+					$link->query("DROP USER '{$d['database_name']}'");
 				break;	
 				case 'pgsql':
-					$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$database}";
+					$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$d['database_name']}";
 					$GLOBALS['system']->exec($commands);
 				break;
 				case 'mongodb':
-					$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$database}";
+					$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$d['database_name']}";
 					$GLOBALS['system']->exec($commands);
 				break;
 			}
-
-			$sql = "DELETE FROM `databases` WHERE database_name = '".security::escape($database)."'";
-			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 		
 		// =================================
