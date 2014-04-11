@@ -105,15 +105,14 @@ $a->setExecute(function() use ($a)
 		case 'mysql':
 			$server = 'sql2.olympe.in';
 			if( $server == 'sql.olympe.in' || $server == 'sql1.olympe.in' )
-				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+				$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
 			else if( $server == 'sql2.olympe.in' )
-				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-			mysql_query("CREATE USER '{$base}'@'%' IDENTIFIED BY '{$pass}'", $link);
-			mysql_query("CREATE DATABASE `{$base}` CHARACTER SET utf8 COLLATE utf8_unicode_ci", $link);
-			mysql_query("GRANT USAGE ON * . * TO '{$base}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0", $link);
-			mysql_query("GRANT ALL PRIVILEGES ON `{$base}` . * TO '{$base}'@'%'", $link);
-			mysql_query("FLUSH PRIVILEGES", $link);
-			mysql_close($link);
+				$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2']);
+			$link->query("CREATE USER '{$base}'@'%' IDENTIFIED BY '{$pass}'");
+			$link->query("CREATE DATABASE `{$base}` CHARACTER SET utf8 COLLATE utf8_unicode_ci");
+			$link->query("GRANT USAGE ON * . * TO '{$base}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0");
+			$link->query("GRANT ALL PRIVILEGES ON `{$base}` . * TO '{$base}'@'%'");
+			$link->query("FLUSH PRIVILEGES");
 		break;
 		case 'pgsql':
 			$server = 'pgsql.olympe.in';

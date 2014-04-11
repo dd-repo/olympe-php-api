@@ -75,12 +75,11 @@ $a->setExecute(function() use ($a)
 	{
 		case 'mysql':
 			if( $result['database_server'] == 'sql.olympe.in' || $result['database_server'] == 'sql1.olympe.in' )
-				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+				$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
 			else if( $result['database_server'] == 'sql2.olympe.in' )
-				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-			mysql_query("DROP USER '{$database}'", $link);
-			mysql_query("DROP DATABASE `{$database}`", $link);
-			mysql_close($link);
+				$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2']);
+			$link->query("DROP USER '{$database}'");
+			$link->query("DROP DATABASE `{$database}`");
 		break;
 		case 'pgsql':
 			$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$database}";
