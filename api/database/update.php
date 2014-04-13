@@ -129,12 +129,12 @@ $a->setExecute(function() use ($a)
 				$link->query("SET PASSWORD FOR '{$database}'@'%' = PASSWORD('".security::escape($pass)."')");
 			break;
 		case 'pgsql':
-			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-pgsql {$database} ".security::escape($pass)."";
-			$GLOBALS['system']->exec($commands);
+			$command = "/dns/tm/sys/usr/local/bin/update-db-pgsql {$database} ".security::escape($pass)."";
+			$GLOBALS['gearman']->sendAsync($command);
 		break;
 		case 'mongodb':
-			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-mongodb {$database} ".security::escape($pass)."";
-			$GLOBALS['system']->exec($commands);
+			$command = "/dns/tm/sys/usr/local/bin/update-db-mongodb {$database} ".security::escape($pass)."";
+			$GLOBALS['gearman']->sendAsync($command);
 		break;
 		}
 	}

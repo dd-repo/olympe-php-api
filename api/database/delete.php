@@ -82,12 +82,12 @@ $a->setExecute(function() use ($a)
 			$link->query("DROP DATABASE `{$database}`");
 		break;
 		case 'pgsql':
-			$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$database}";
-			$GLOBALS['system']->exec($commands);
+			$commands = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$database}";
+			$GLOBALS['gearman']->sendAsync($command);
 		break;
 		case 'mongodb':
-			$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$database}";
-			$GLOBALS['system']->exec($commands);
+			$commands = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$database}";
+			$GLOBALS['gearman']->sendAsync($command);
 		break;
 	}
 	
