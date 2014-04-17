@@ -74,6 +74,14 @@ $a->setExecute(function() use ($a)
 				// =================================
 				$sql = "DELETE FROM directory WHERE site_ldap_id = {$s['uidNumber']}";
 				$GLOBALS['db']->query($sql, mysql::NO_ROW);
+				
+				// =================================
+				// DELETE PIWIK SITE
+				// =================================
+				$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.getSitesIdFromSiteUrl&url=http://{$s['associatedDomain']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+				$json = json_decode(@file_get_contents($url), true);
+				$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.deleteSite&idSite={$json[0]['idsite']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+				@file_get_contents($url);
 			}
 		}
 		
