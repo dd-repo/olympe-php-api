@@ -62,7 +62,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// CAN NOT COMPUTE QUOTAS DURING THE DAY!
 	// =================================
-	if( (date('G') >= 0 && date('G') <= 8) && $force !== true )
+	if( date('G') >= 8 && $force !== true )
 		throw new ApiException("You can not compute quota during the day!", 403, "Please wait the night");
 	
 	// =================================
