@@ -120,12 +120,12 @@ $a->setExecute(function() use ($a)
 					$link->query("DROP USER '{$d['database_name']}'");
 				break;	
 				case 'pgsql':
-					$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$d['database_name']}";
-					$GLOBALS['system']->exec($commands);
+					$command = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$d['database_name']}";
+					$GLOBALS['gearman']->sendAsync($command);
 				break;
 				case 'mongodb':
-					$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$d['database_name']}";
-					$GLOBALS['system']->exec($commands);
+					$command = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$d['database_name']}";
+					$GLOBALS['gearman']->sendAsync($command);
 				break;
 			}
 		}

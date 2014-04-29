@@ -116,12 +116,12 @@ $a->setExecute(function() use ($a)
 		break;
 		case 'pgsql':
 			$server = 'pgsql.olympe.in';
-			$commands = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$base} {$pass} {$server}";
+			$command = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$base} {$pass} {$server}";
 			$GLOBALS['gearman']->sendAsync($command);
 		break;
 		case 'mongodb':
 			$server = 'mongo.olympe.in';
-			$commands = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$base} {$pass} {$server}";
+			$command = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$base} {$pass} {$server}";
 			$GLOBALS['gearman']->sendAsync($command);
 		break;
 	}
