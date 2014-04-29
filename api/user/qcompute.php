@@ -49,7 +49,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$user = $a->getParam('user');
 	$cron = $a->getParam('cron');
-
+	$force = $a->getParam('force');
+	
 	if( $cron == '1' || $cron == 'yes' || $cron == 'true' || $cron === true || $cron === 1 )
 		$cron = true;
 	else
