@@ -86,7 +86,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// UPDATE LOCAL DATABASE
 	// =================================
-	if( $desc != null )
+	if( $desc !== null )
 	{
 		$sql = "UPDATE `databases` SET database_desc = '".security::escape($desc)."' WHERE database_name = '".security::escape($database)."'";
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
@@ -95,15 +95,18 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// UPDATE REMOTE DATABASE
 	// =================================
-	switch( $result['database_type'] )
+	if( $pass !== null )
 	{
-		case 'mysql':
-			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-			mysql_query("SET PASSWORD FOR '{$database}'@'%' = PASSWORD('".security::escape($pass)."')", $link);
-			mysql_close($link);
-		break;	
+		switch( $result['database_type'] )
+		{
+			case 'mysql':
+				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+				mysql_query("SET PASSWORD FOR '{$database}'@'%' = PASSWORD('".security::escape($pass)."')", $link);
+				mysql_close($link);
+			break;	
+		}
 	}
-
+	
 	responder::send("OK");
 });
 

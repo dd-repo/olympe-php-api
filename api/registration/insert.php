@@ -14,15 +14,6 @@ $a->setReturn(array(array(
 	'code'=>'the registration ephmeral token', 
 	)));
 $a->addParam(array(
-	'name'=>array('name', 'user_name', 'username', 'login', 'user'),
-	'description'=>'The name of the target user.',
-	'optional'=>true,
-	'minlength'=>3,
-	'maxlength'=>50,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
-	'action'=>true
-	));
-$a->addParam(array(
 	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
 	'description'=>'The email of the user.',
 	'optional'=>false,
@@ -41,7 +32,6 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET PARAMETERS
 	// =================================
-	$user = $a->getParam('user');
 	$mail = $a->getParam('mail');
 	
 	// =================================
@@ -55,52 +45,18 @@ $a->setExecute(function() use ($a)
 	// CHECK IF PENDING REQUEST EXISTS
 	// =================================
 	$sql = "SELECT register_id FROM register 
-			WHERE register_user = '".security::escape($user)."'
-			OR register_email = '".security::escape($mail)."'";
+			WHERE register_email = '".security::escape($mail)."'";
 	$result = $GLOBALS['db']->query($sql);
 
 	if( $result !== null || $result['user_id'] !== null )
 		throw new ApiException("Pending request already exists", 412, "Existing pending request for : {$user} : {$mail}");
 
 	// =================================
-	// CHECK IF LOCAL USER EXISTS
-	// =================================
-	if( $user != null )
-	{
-		$sql = "SELECT user_id FROM users WHERE user_name = '".security::escape($user)."'";
-		$result = $GLOBALS['db']->query($sql);
-
-		if( $result !== null || $result['user_id'] !== null )
-			throw new ApiException("User already exists", 412, "Existing local user : " . $user);
-	}
-	
-	// =================================
-	// CHECK IF REMOTE USER EXISTS
-	// =================================
-	try
-	{
-		if( $user != null )
-		{
-			$dn = ldap::buildDN(ldap::USER, $GLOBALS['CONFIG']['DOMAIN'], $user);
-			$result = $GLOBALS['ldap']->read($dn);
-		
-			// this should throw a 404 if the user does NOT exist
-			throw new ApiException("User already exists", 412, "Existing remote user : " . $user);
-		}
-	}
-	catch(Exception $e)
-	{
-		// if this is not the 404 we expect, rethrow it
-		if( !($e instanceof ApiException) || !preg_match("/Entry not found/s", $e.'') )
-			throw $e;
-	}
-
-	// =================================
 	// INSERT PENDING REQUEST
 	// =================================
 	$code = md5($user.$email.time());
-	$sql = "INSERT INTO register (register_user, register_email, register_code, register_date)
-			VALUES ('".security::escape($user)."', '".security::escape($mail)."', '{$code}', UNIX_TIMESTAMP())";
+	$sql = "INSERT INTO register (register_email, register_code, register_date)
+			VALUES ('".security::escape($mail)."', '{$code}', UNIX_TIMESTAMP())";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	responder::send(array("code"=>$code));

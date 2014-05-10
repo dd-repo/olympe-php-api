@@ -49,7 +49,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// HANDLE CRON
 	// =================================
-	if( $user === null && $cron )
+	if( $user === null && $cron === true )
 	{
 		// =================================
 		// RESET MAIL QUOTA

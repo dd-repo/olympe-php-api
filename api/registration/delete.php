@@ -11,15 +11,7 @@ $a->addAlias(array('delete', 'remove', 'cancel'));
 $a->setDescription("Removes a pending registration");
 $a->addGrant(array('ACCESS', 'REGISTRATION_DELETE'));
 $a->setReturn(array('OK')); 
-	
-$a->addParam(array(
-	'name'=>array('name', 'user_name', 'username', 'login', 'user'),
-	'description'=>'The name of the target user.',
-	'optional'=>true,
-	'minlength'=>3,
-	'maxlength'=>50,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT
-	));
+
 $a->addParam(array(
 	'name'=>array('id', 'code'),
 	'description'=>'The code of the target registration.',
@@ -39,13 +31,12 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET PARAMETERS
 	// =================================
-	$user = $a->getParam('user');
 	$code = $a->getParam('code');
 
 	// =================================
 	// EXECUTE QUERY
 	// =================================
-	$sql = "DELETE FROM register WHERE register_user='".security::escape($user)."' OR register_code='".security::escape($code)."'";
+	$sql = "DELETE FROM register WHERE register_code='".security::escape($code)."'";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
 	responder::send("OK");
