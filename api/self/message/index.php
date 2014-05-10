@@ -12,58 +12,37 @@ switch($action)
 	case 'create':
 	case 'add':
 	case 'insert':
-		security::requireGrants(array('ACCESS', 'SELF_SITE_INSERT'));
+		security::requireGrants(array('ACCESS', 'SELF_MESSAGE_INSERT'));
 		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
 		request::addParam('user', security::getUser());
-		grantStore::add('SITE_INSERT');
-		request::forward('/site/insert'); break;
+		grantStore::add('MESSAGE_INSERT');
+		request::forward('/message/insert'); break;
 	case 'list':
 	case 'view':
 	case 'select':
 	case 'search':
-		security::requireGrants(array('ACCESS', 'SELF_SITE_SELECT'));
+		security::requireGrants(array('ACCESS', 'SELF_MESSAGE_SELECT'));
 		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
 		request::addParam('user', security::getUser());
-		grantStore::add('SITE_SELECT');
-		request::forward('/site/select'); break;
+		grantStore::add('MESSAGE_SELECT');
+		request::forward('/message/select'); break;
 	case 'update':
 	case 'modify':
 	case 'change':
-		security::requireGrants(array('ACCESS', 'SELF_SITE_UPDATE'));
+		security::requireGrants(array('ACCESS', 'SELF_MESSAGE_UPDATE'));
 		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
 		request::addParam('user', security::getUser());
-		grantStore::add('SITE_UPDATE');
-		request::forward('/site/update'); break;
+		grantStore::add('MESSAGE_UPDATE');
+		request::forward('/message/update'); break;
 	case 'delete':
 	case 'del':
 	case 'remove':
 	case 'destroy':
-		security::requireGrants(array('ACCESS', 'SELF_SITE_DELETE'));
+		security::requireGrants(array('ACCESS', 'SELF_MESSAGE_DELETE'));
 		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
 		request::addParam('user', security::getUser());
-		grantStore::add('SITE_DELETE');
-		request::forward('/site/delete'); break;
-	case 'response':
-	case 'responsetime':
-	case 'time':
-	case 'delay':
-		security::requireGrants(array('ACCESS', 'SELF_SITE_SELECT'));
-		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
-		request::addParam('user', security::getUser());
-		grantStore::add('SITE_SELECT');
-		request::forward('/site/response'); break;
-	case 'setrate':
-		security::requireGrants(array('ACCESS', 'SELF_SITE_UPDATE'));
-		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
-		request::addParam('user', security::getUser());
-		grantStore::add('SITE_UPDATE');
-		request::forward('/site/setrate'); break;
-	case 'getrate':
-		security::requireGrants(array('ACCESS', 'SELF_SITE_SELECT'));
-		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
-		request::addParam('user', security::getUser());
-		grantStore::add('SITE_SELECT');
-		request::forward('/site/getrate'); break;
+		grantStore::add('MESSAGE_DELETE');
+		request::forward('/message/delete'); break;
 	case 'help':
 	case 'doc':
 		$body = "

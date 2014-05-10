@@ -101,6 +101,11 @@ $a->setExecute(function() use ($a)
 	
 	$result = $GLOBALS['ldap']->create($dn, $data);
 	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('subdomain/insert', $a->getParams(), $userdata['user_id']);
+
 	responder::send(array("name"=>$subdomain, "id"=>$result['uidNumber']));
 });
 

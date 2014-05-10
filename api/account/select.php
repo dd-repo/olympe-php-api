@@ -148,6 +148,7 @@ $a->setExecute(function() use ($a)
 		$ac['size'] = $storage['storage_size'];
 		$ac['firstname'] = $result['givenName'];
 		$ac['lastname'] = $result['sn'];
+		$ac['homeDirectory'] = $result['homeDirectory'];
 		$ac['redirection'] = $result['mailForwardingAddress'];
 		$ac['alternate'] = $result['mailAlternateAddress'];
 		$ac['mail'] = $result['mail'];
@@ -196,6 +197,7 @@ $a->setExecute(function() use ($a)
 			$ac['id'] = $r['uidNumber'];
 			$ac['firstname'] = $r['givenName'];
 			$ac['lastname'] = $r['sn'];
+			$ac['homeDirectory'] = $r['homeDirectory'];
 			$ac['redirection'] = $r['mailForwardingAddress'];
 			$ac['size'] = $storage['storage_size'];
 			$ac['mail'] = $r['mail'];
