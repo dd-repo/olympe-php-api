@@ -93,7 +93,7 @@ $a->addParam(array(
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>30,
+	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	'action'=>false
 	));

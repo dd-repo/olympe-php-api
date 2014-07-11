@@ -43,7 +43,7 @@ $user = request::getCheckParam(array(
 	'name'=>array('user_name', 'username', 'login', 'user', 'user_id', 'uid'),
 	'optional'=>false,
 	'minlength'=>1,
-	'maxlength'=>30,
+	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
 $valueFilters = request::getCheckParam(array(
