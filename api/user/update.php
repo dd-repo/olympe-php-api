@@ -89,7 +89,7 @@ $a->addParam(array(
 	'name'=>array('comment', 'user_comment'),
 	'description'=>'The user comment.',
 	'optional'=>true,
-	'minlength'=>5,
+	'minlength'=>0,
 	'maxlength'=>1500,
 	'match'=>request::ALL
 	));
