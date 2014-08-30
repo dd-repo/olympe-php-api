@@ -55,7 +55,7 @@ $a->setExecute(function() use ($a)
 	$pass = $a->getParam('pass');
 	$user = $a->getParam('user');
 	
-	if( is_numeric($subdomain) )
+	if( is_numeric($site) )
 		throw new ApiException("Parameter validation failed", 412, "Parameter site may not be numeric : " . $site);
 
 	// =================================
