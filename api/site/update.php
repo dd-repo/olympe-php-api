@@ -157,8 +157,8 @@ $a->setExecute(function() use ($a)
 		$set .= ", site_category = '".security::escape($category)."'";
 	if( $directory === true )
 		$set .= ", site_status = 1";
-	else if( $directory === false )
-		$set .= ", site_status = 0";
+	else if( $directory !== null )
+		$set .= ", site_status = '".security::escape($directory)."'";
 
 	if( strlen($set) > 0 )
 	{
