@@ -108,9 +108,6 @@ $a->setExecute(function() use ($a)
 	$description = $a->getParam('description');
 	$user = $a->getParam('user');
 	
-	if( $directory == '1' || $directory == 'yes' || $directory == 'true' || $directory === true || $directory === 1 ) $directory = true;
-	else if( $directory == '0' || $directory == 'no' || $directory == 'false' || $directory === false || $directory === 0 ) $directory = false;
-	
 	// =================================
 	// GET REMOTE INFO
 	// =================================
