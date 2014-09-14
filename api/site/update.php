@@ -52,7 +52,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>1,
 	'maxlength'=>5,
-	'match'=>"(1|0|yes|no|true|false)"
+	'match'=>request::NUMBER
 	));
 $a->addParam(array(
 	'name'=>array('title', 'site_title'),
