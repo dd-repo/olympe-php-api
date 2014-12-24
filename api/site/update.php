@@ -52,7 +52,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>1,
 	'maxlength'=>5,
-	'match'=>"(1|0|yes|no|true|false)"
+	'match'=>request::NUMBER
 	));
 $a->addParam(array(
 	'name'=>array('title', 'site_title'),
@@ -83,7 +83,7 @@ $a->addParam(array(
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>30,
+	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	'action'=>false
 	));
@@ -107,9 +107,6 @@ $a->setExecute(function() use ($a)
 	$category = $a->getParam('category');
 	$description = $a->getParam('description');
 	$user = $a->getParam('user');
-	
-	if( $directory == '1' || $directory == 'yes' || $directory == 'true' || $directory === true || $directory === 1 ) $directory = true;
-	else if( $directory == '0' || $directory == 'no' || $directory == 'false' || $directory === false || $directory === 0 ) $directory = false;
 	
 	// =================================
 	// GET REMOTE INFO
@@ -160,8 +157,8 @@ $a->setExecute(function() use ($a)
 		$set .= ", site_category = '".security::escape($category)."'";
 	if( $directory === true )
 		$set .= ", site_status = 1";
-	else if( $directory === false )
-		$set .= ", site_status = 0";
+	else if( $directory !== null )
+		$set .= ", site_status = '".security::escape($directory)."'";
 
 	if( strlen($set) > 0 )
 	{

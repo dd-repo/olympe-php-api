@@ -50,7 +50,7 @@ $a->addParam(array(
 	'description'=>'The name or id of the target user.',
 	'optional'=>false,
 	'minlength'=>1,
-	'maxlength'=>30,
+	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
 	
@@ -123,19 +123,18 @@ $a->setExecute(function() use ($a)
 		{
 			case 'mysql':
 				if( $result['database_server'] == 'sql.olympe.in' || $result['database_server'] == 'sql1.olympe.in' )
-					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+					$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
 				else if( $result['database_server'] == 'sql2.olympe.in' )
-					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-				mysql_query("SET PASSWORD FOR '{$database}'@'%' = PASSWORD('".security::escape($pass)."')", $link);
-				mysql_close($link);
+					$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2']);
+				$link->query("SET PASSWORD FOR '{$database}'@'%' = PASSWORD('".security::escape($pass)."')");
 			break;
 		case 'pgsql':
-			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-pgsql {$database} ".security::escape($pass)."";
-			$GLOBALS['system']->exec($commands);
+			$command = "/dns/tm/sys/usr/local/bin/update-db-pgsql {$database} ".security::escape($pass)."";
+			$GLOBALS['gearman']->sendAsync($command);
 		break;
 		case 'mongodb':
-			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-mongodb {$database} ".security::escape($pass)."";
-			$GLOBALS['system']->exec($commands);
+			$command = "/dns/tm/sys/usr/local/bin/update-db-mongodb {$database} ".security::escape($pass)."";
+			$GLOBALS['gearman']->sendAsync($command);
 		break;
 		}
 	}

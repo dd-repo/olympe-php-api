@@ -25,7 +25,7 @@ $a->addParam(array(
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
 	'minlength'=>1,
-	'maxlength'=>30,
+	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
 	
@@ -71,8 +71,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// DELETE REMOTE BACKUP
 	// =================================
-	$commands[] = "rm /dns/in/olympe/download/{$result['backup_identifier']}.gz";
-	$GLOBALS['system']->exec($commands);
+	$command = "rm /dns/in/olympe/download/{$result['backup_identifier']}.gz";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
 	// DELETE LOCAL BACKUP

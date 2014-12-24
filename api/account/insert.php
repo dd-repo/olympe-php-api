@@ -35,7 +35,7 @@ $a->addParam(array(
 	'description'=>'The name or id of the target user.',
 	'optional'=>false,
 	'minlength'=>0,
-	'maxlength'=>30,
+	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));	
 $a->addParam(array(
@@ -145,8 +145,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:33 {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod g+s {$data['homeDirectory']}";
-	$GLOBALS['system']->exec($commands);
+	$command = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:33 {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod g+s {$data['homeDirectory']}";
+	$GLOBALS['gearman']->sendAsync($command);
 
 	// =================================
 	// LOG ACTION

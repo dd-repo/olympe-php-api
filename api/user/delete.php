@@ -16,7 +16,7 @@ $a->addParam(array(
 	'description'=>'The name or id of the user to delete.',
 	'optional'=>false,
 	'minlength'=>1,
-	'maxlength'=>30,
+	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	'action'=>true
 	));
@@ -66,9 +66,22 @@ $a->setExecute(function() use ($a)
 			if( $s['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($s['dn']);
-				$commands = array();
-				$commands[] = "rm -Rf {$s['homeDirectory']}";
-				$GLOBALS['system']->exec($commands);
+				$command = "rm -Rf {$s['homeDirectory']}";
+				$GLOBALS['gearman']->sendAsync($command);
+				
+				// =================================
+				// DELETE DIRECTORY ENTRY
+				// =================================
+				$sql = "DELETE FROM directory WHERE site_ldap_id = {$s['uidNumber']}";
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);
+				
+				// =================================
+				// DELETE PIWIK SITE
+				// =================================
+				$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.getSitesIdFromSiteUrl&url=http://{$s['associatedDomain']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+				$json = json_decode(@file_get_contents($url), true);
+				$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.deleteSite&idSite={$json[0]['idsite']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+				@file_get_contents($url);
 			}
 		}
 		
@@ -83,16 +96,15 @@ $a->setExecute(function() use ($a)
 			if( $d['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($d['dn']);
-				$commands = array();
-				$commands[] = "rm -Rf {$d['homeDirectory']}";
-				$GLOBALS['system']->exec($commands);
+				$command = "rm -Rf {$d['homeDirectory']}";
+				$GLOBALS['gearman']->sendAsync($command);
 			}
 		}
 
 		// =================================
 		// DATABASES
 		// =================================
-		$sql = "SELECT d.database_type, d.database_name FROM `databases` d WHERE database_user = '{$result['user_id']}'";
+		$sql = "SELECT d.database_type, d.database_name, d.database_server FROM `databases` d WHERE database_user = '{$result['user_id']}'";
 		$databases = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 	
 		foreach( $databases as $d )
@@ -100,15 +112,22 @@ $a->setExecute(function() use ($a)
 			switch( $result['database_type'] )
 			{
 				case 'mysql':
-					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-					mysql_query("DROP DATABASE '{$database}'", $link);
-					mysql_query("DROP USER '{$database}'", $link);
-					mysql_close($link);
+					if( $d['database_server'] == 'sql.olympe.in' || $d['database_server'] == 'sql1.olympe.in' )
+					$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
+				else if( $d['database_server'] == 'sql2.olympe.in' )
+					$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT2']);
+					$link->query("DROP DATABASE '{$d['database_name']}'");
+					$link->query("DROP USER '{$d['database_name']}'");
 				break;	
+				case 'pgsql':
+					$command = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$d['database_name']}";
+					$GLOBALS['gearman']->sendAsync($command);
+				break;
+				case 'mongodb':
+					$command = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$d['database_name']}";
+					$GLOBALS['gearman']->sendAsync($command);
+				break;
 			}
-
-			$sql = "DELETE FROM `databases` WHERE database_name = '".security::escape($database)."'";
-			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 		
 		// =================================
@@ -133,9 +152,8 @@ $a->setExecute(function() use ($a)
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
 	$date = date('YmdHis');
-	$commands = array();
-	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	$GLOBALS['system']->exec($commands);
+	$command = "rm -Rf {$data['homeDirectory']}";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	responder::send("OK");
 });

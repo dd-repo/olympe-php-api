@@ -27,7 +27,7 @@ $a->addParam(array(
 	'name'=>array('pass', 'password', 'user_password', 'user_pass'),
 	'description'=>'The password of the user.',
 	'optional'=>false,
-	'minlength'=>3,
+	'minlength'=>6,
 	'maxlength'=>50,
 	'match'=>request::PHRASE|request::SPECIAL,
 	'action'=>true
@@ -120,6 +120,14 @@ $a->setExecute(function() use ($a)
 		if( !($e instanceof ApiException) || !preg_match("/Entry not found/s", $e.'') )
 			throw $e;
 	}
+	
+	// =================================
+	// CHECK FOR USER WITH THE SAME EMAIL
+	// =================================		
+	$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::USER, "(mailForwardingAddress={$mail})"));
+	
+	if( count($result) > 0 )
+		throw new ApiException("Email already exists", 412, "Existing email : {$mail}");
 
 	// =================================
 	// INSERT REMOTE USER
@@ -160,8 +168,8 @@ $a->setExecute(function() use ($a)
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
 	$data['domain'] = $GLOBALS['CONFIG']['DOMAIN'];
-	$commands[] = "mkdir -p {$data['homeDirectory']} && chown 33:{$data['gidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod g+s {$data['homeDirectory']}";
-	$GLOBALS['system']->exec($commands);
+	$command = "mkdir -p {$data['homeDirectory']} && chown 33:{$data['gidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod g+s {$data['homeDirectory']}";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
 	// LOG ACTION

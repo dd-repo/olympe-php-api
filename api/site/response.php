@@ -93,7 +93,7 @@ $a->addParam(array(
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>30,
+	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	'action'=>false
 	));
@@ -149,7 +149,7 @@ $a->setExecute(function() use ($a)
 	// SELECT RECORDS
 	// =================================
 	if( $group !== null )
-		$sql = "SELECT AVG(response_time) as average, {$group} (FROM_UNIXTIME(response_date)) as {$group} FROM responsetimes WHERE 1 {$where} GROUP BY {$group} (FROM_UNIXTIME(response_date))";
+		$sql = "SELECT AVG(response_time) as average, {$group} (FROM_UNIXTIME(response_date)) as {$group} FROM responsetimes WHERE 1 {$where} GROUP BY {$group} (FROM_UNIXTIME(response_date)) ORDER BY {$order} {$ordered} ";
 	if( $count === true )
 		$sql = "SELECT COUNT(response_id) as count FROM responsetimes WHERE 1 {$where} ORDER BY {$order} {$ordered} LIMIT {$limitation}";	
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);

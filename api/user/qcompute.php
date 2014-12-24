@@ -27,6 +27,15 @@ $a->addParam(array(
 	'maxlength'=>5,
 	'match'=>"(1|0|yes|no|true|false)"
 	));
+$a->addParam(array(
+	'name'=>array('force'),
+	'description'=>'Force?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+	
 	
 $a->setExecute(function() use ($a)
 {
@@ -40,12 +49,23 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$user = $a->getParam('user');
 	$cron = $a->getParam('cron');
-
+	$force = $a->getParam('force');
+	
 	if( $cron == '1' || $cron == 'yes' || $cron == 'true' || $cron === true || $cron === 1 )
 		$cron = true;
 	else
 		$cron = false;
+	if( $force == '1' || $force == 'yes' || $force == 'true' || $force === true || $force === 1 )
+		$force = true;
+	else
+		$force = false;
 		
+	// =================================
+	// CAN NOT COMPUTE QUOTAS DURING THE DAY!
+	// =================================
+	if( date('G') >= 8 && $force !== true )
+		throw new ApiException("You can not compute quota during the day!", 403, "Please wait the night");
+	
 	// =================================
 	// HANDLE CRON
 	// =================================

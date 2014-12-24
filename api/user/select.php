@@ -38,7 +38,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>150,
-	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('from'),
@@ -174,7 +174,7 @@ $a->setExecute(function() use ($a)
 	// =================================	
 	if( $mail !== null && count($user) == 0 )
 	{
-		$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::USER, "(mailForwardingAddress={$mail})"));
+		$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::USER, "(mailForwardingAddress=*{$mail}*)"));
 		
 		$user = array();
 		foreach( $result as $r )
@@ -237,7 +237,7 @@ $a->setExecute(function() use ($a)
 	
 	if( $quota === true )
 	{
-		$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_status, u.user_date, u.user_last_update, q.quota_id, q.quota_name, uq.quota_max, uq.quota_used
+		$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_status, u.user_date, u.user_last_update, u.user_last_login, u.user_comment, q.quota_id, q.quota_name, uq.quota_max, uq.quota_used
 				FROM users u
 				LEFT JOIN user_quota uq ON(u.user_id = uq.user_id)
 				LEFT JOIN quotas q ON(uq.quota_id = q.quota_id)
@@ -252,7 +252,7 @@ $a->setExecute(function() use ($a)
 	}
 	else
 	{
-		$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_date, u.user_last_update, u.user_status
+		$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_date, u.user_last_update, u.user_last_login, u.user_comment, u.user_status
 				FROM users u
 				WHERE false {$where_name} {$where_id} {$where}
 				ORDER BY {$order} {$order_type}
@@ -275,7 +275,7 @@ $a->setExecute(function() use ($a)
 			if( $current != null )
 				$users[] = $current;
 			
-			$current = array('name'=>$r['user_name'], 'id'=>$r['user_id'], 'uid'=>$r['user_ldap'], 'firstname'=>'', 'lastname'=>'', 'email'=>'', 'status'=>$r['user_status'], 'date'=>$r['user_date'], 'ip'=>'', 'last'=>$r['user_last_update']);
+			$current = array('name'=>$r['user_name'], 'id'=>$r['user_id'], 'uid'=>$r['user_ldap'], 'firstname'=>'', 'lastname'=>'', 'email'=>'', 'status'=>$r['user_status'], 'date'=>$r['user_date'], 'ip'=>'', 'last'=>$r['user_last_update'], 'lastlogin'=>$r['user_last_login'], 'comment'=>$r['user_comment']);
 			
 			if( $quota )
 				$current['quotas'] = array();

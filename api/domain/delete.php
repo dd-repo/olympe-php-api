@@ -26,7 +26,7 @@ $a->addParam(array(
 	'description'=>'The name or id of the target user.',
 	'optional'=>false,
 	'minlength'=>1,
-	'maxlength'=>30,
+	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
 
@@ -78,8 +78,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "rm {$data['homeDirectory']}";
-	$GLOBALS['system']->exec($commands);
+	$command = "rm {$data['homeDirectory']}";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
 	// SYNC QUOTA

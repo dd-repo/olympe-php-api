@@ -16,7 +16,7 @@ $a->addParam(array(
 	'description'=>'The name or id of the user',
 	'optional'=>false,
 	'minlength'=>1,
-	'maxlength'=>30,
+	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	'action'=>true
 	));
@@ -85,6 +85,14 @@ $a->addParam(array(
 	'maxlength'=>8,
 	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
 	));
+$a->addParam(array(
+	'name'=>array('comment', 'user_comment'),
+	'description'=>'The user comment.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>1500,
+	'match'=>request::ALL
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -104,6 +112,8 @@ $a->setExecute(function() use ($a)
 	$address = $a->getParam('address');
 	$language = $a->getParam('language');
 	$code = $a->getParam('code');
+	$comment = $a->getParam('comment');
+
 	
         // =================================
         // PROCESS PARAMETERS
@@ -166,6 +176,13 @@ $a->setExecute(function() use ($a)
 	catch(Exception $e)
 	{
 	}
+	
+	$set = '';
+	if( $comment !== null )
+		$set .= ", user_comment = '".security::escape($comment)."'";
+		
+	$sql = "UPDATE users SET user_id = user_id {$set} WHERE user_id = {$result['user_id']}";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	// =================================
 	// LOG ACTION
