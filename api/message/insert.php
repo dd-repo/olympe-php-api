@@ -54,14 +54,6 @@ $a->addParam(array(
 	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));
-$a->addParam(array(
-	'name'=>array('ip', 'message_ip'),
-	'description'=>'The message IP.',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>40,
-	'match'=>request::ALL
-	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -78,12 +70,11 @@ $a->setExecute(function() use ($a)
 	$title = $a->getParam('title');
 	$parent = $a->getParam('parent');
 	$user = $a->getParam('user');
-	$ip = $a->getParam('ip');
 	
 	// =================================
 	// INSERT MESSAGE
 	// =================================
-	$sql = "INSERT INTO `messages` (message_parent, message_title, message_content, message_date, message_user, message_type, message_ip) VALUE ('".($parent!==null?security::escape($parent):"1")."', '".security::escape($title)."', '".security::escape($content)."', UNIX_TIMESTAMP(), '".security::escape($user)."',  '".security::escape($type)."',  '".security::escape($ip)."')";
+	$sql = "INSERT INTO `messages` (message_parent, message_title, message_content, message_date, message_user, message_type) VALUE ('".($parent!==null?security::escape($parent):"1")."', '".security::escape($title)."', '".security::escape($content)."', UNIX_TIMESTAMP(), '".security::escape($user)."',  '".security::escape($type)."')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	$id = $GLOBALS['db']->last_id();
 	
