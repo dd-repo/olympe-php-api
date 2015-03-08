@@ -65,7 +65,7 @@ $a->setExecute(function() use ($a)
 	// logger::insert('backup/insert', $a->getParams(), $userdata['user_id']);
 	
 	responder::send(array('url'=> $GLOBALS['gearman']));
-});
+);
 
 return $a;
 
