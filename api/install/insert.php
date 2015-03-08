@@ -6,6 +6,9 @@ if( !defined('PROPER_START') )
 	exit;
 }
 
+var_dump ( function_exists("ssh2_connect") );
+die();
+
 $a = new action();
 $a->addAlias(array('create', 'add'));
 $a->setDescription("Start installation");
@@ -54,8 +57,6 @@ $a->setExecute(function() use ($a)
 		if( $userdata == null || $userdata['user_ldap'] == null )
 			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 	}
-	
-
 	
 }
 	
