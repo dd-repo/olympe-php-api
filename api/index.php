@@ -96,7 +96,7 @@ $i->addEntry('news', array('news'));
 $i->addEntry('message', array('message', 'messages'));
 $i->addEntry('backup', array('backup', 'backups'));
 $i->addEntry('log', array('log', 'logs'));
-$i->addEntry('install', array('install, 'setup'));
+$i->addEntry('install', array('install', 'setup'));
 $i->addEntry('test', array('test', 'hello'));
 
 return $i;

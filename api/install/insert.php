@@ -6,13 +6,11 @@ if( !defined('PROPER_START') )
 	exit;
 }
 
-var_dump ( function_exists("ssh2_connect") );
-die();
 
 $a = new action();
 $a->addAlias(array('create', 'add'));
 $a->setDescription("Start installation");
-$a->addGrant(array('ACCESS', 'SITE_INSERT'));
+$a->addGrant(array('ACCESS', 'INSTALL_INSERT'));
 $a->setReturn(array(array(
 	'url'=>'the URL to the backup'
 	)));
@@ -33,14 +31,35 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	'action'=>false
 	));
-
+	
 $a->setExecute(function() use ($a)
 {
+
 	// =================================
 	// CHECK AUTH
 	// =================================
 	$a->checkAuth();
+	$user = $a->getParam('user');
+	
+	$sql = "SELECT user_ldap, user_id, user_name FROM users WHERE user_id=".$user;
+	$userdata = $GLOBALS['db']->query($sql);
+	
+	if( $userdata == null || $userdata['user_ldap'] == null )
+		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+	
+	$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
+	$user_info = $GLOBALS['ldap']->read($user_dn);
+	$data = $user_info;
+	$command = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:33 {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']}";
+	
+	$result['command'] = $command;
+	$command = "ls -alh {$data['homeDirectory']}";
+	$result['install'] = exec ( 'pecl install ssh2 http://pecl.php.net/get/ssh2-0.12.tgz' );
+	
 
+	$result['exists'] =  function_exists ( 'ssh2_exec' );
+	$result['me'] = exec('ls -al ~/.ssh'); 
+	/*
 	// =================================
 	// GET PARAMETERS
 	// =================================
@@ -56,8 +75,8 @@ $a->setExecute(function() use ($a)
 		$userdata = $GLOBALS['db']->query($sql);
 		if( $userdata == null || $userdata['user_ldap'] == null )
 			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-	}
-	
+	}*/
+	responder::send($result);
 }
 	
 	// =================================
@@ -65,7 +84,6 @@ $a->setExecute(function() use ($a)
 	// =================================	
 	// logger::insert('backup/insert', $a->getParams(), $userdata['user_id']);
 	
-	responder::send(array('url'=> $GLOBALS['gearman']));
 );
 
 return $a;
