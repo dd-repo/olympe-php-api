@@ -57,7 +57,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT RECORDS
 	// =================================
-	$sql = "SELECT register_email, register_date
+	$sql = "SELECT register_email, register_code, register_date
 			FROM register
 			WHERE true {$where}";
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
@@ -67,7 +67,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$registrations = array();
 	foreach( $result as $r )
-		$registrations[] = array('email'=>$r['register_email'], 'date'=>$r['register_date']);
+		$registrations[] = array('email'=>$r['register_email'], 'code'=>$r['register_code'], 'date'=>$r['register_date']);
 
 	responder::send($registrations);
 });

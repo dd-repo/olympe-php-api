@@ -113,6 +113,8 @@ $a->addParam(array(
 	
 $a->setExecute(function() use ($a)
 {
+	// TODO Caching for LDAP & MySQL sync
+	
 	// =================================
 	// CHECK AUTH
 	// =================================
