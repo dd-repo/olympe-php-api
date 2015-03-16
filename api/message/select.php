@@ -125,7 +125,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT RECORDS
 	// =================================
-	$sql = "SELECT m.message_title, m.message_content, m.message_date, m.message_parent, m.message_id, m.message_type, m.message_status, u.user_name, u.user_id, u.user_date
+	$sql = "SELECT m.message_title, m.message_content, m.message_date, m.message_parent, m.message_id, m.message_type, m.message_status, m.message_ip, u.user_name, u.user_id, u.user_date, u.user_status
 	FROM messages m LEFT JOIN users u ON(u.user_id = m.message_user)
 	WHERE m.message_status != 0 {$where} ORDER BY m.message_id DESC LIMIT 0,{$limit}";
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
@@ -143,7 +143,8 @@ $a->setExecute(function() use ($a)
 		$m['date'] = $r['message_date'];
 		$m['type'] = $r['message_type'];
 		$m['status'] = $r['message_status'];
-		$m['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name'], 'date'=>$r['user_date']);
+		$m['ip'] = $r['message_ip'];
+		$m['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name'], 'date'=>$r['user_date'], 'status'=>$r['user_status']);
 		
 		$messages[] = $m;
 	}
