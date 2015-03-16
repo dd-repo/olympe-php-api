@@ -52,6 +52,8 @@ $a->setExecute(function() use ($a)
 	$data = $user_info;
 	$command = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:33 {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']}";
 	
+	
+	// TODO: Refactor all installations using a real shell script
 	$result['command'] = $command;
 	$command = "ls -alh {$data['homeDirectory']}";
 	$result['install'] = exec ( 'pecl install ssh2 http://pecl.php.net/get/ssh2-0.12.tgz' );
