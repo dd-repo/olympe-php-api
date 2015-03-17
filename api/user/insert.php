@@ -72,7 +72,7 @@ $a->addParam(array(
 	'maxlength'=>2,
 	'match'=>request::UPPER
 	));
-/*	
+
 $a->setExecute(function() use ($a)
 {
 	// =================================
@@ -178,8 +178,7 @@ $a->setExecute(function() use ($a)
 	
 	responder::send(array("name"=>$user, "id"=>$uid));
 });
-*/
-throw new ApiException("Register closed", 412, "Registration closed for this moment. Sorry :(");
+//throw new ApiException("Register closed", 412, "Registration closed for this moment. Sorry :(");
 return $a;
 
 ?>
