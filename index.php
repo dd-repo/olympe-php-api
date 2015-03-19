@@ -1,4 +1,6 @@
 <?php
+define("__EPOCH__", microtime(true));
+
 // load the config
 require_once '_LIB/config.inc';
 // load the core
