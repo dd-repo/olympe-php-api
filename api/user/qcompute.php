@@ -83,9 +83,9 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$day = date('j');
 	if( $day%2 == 1 )
-		$limits = 'LIMIT 0,20000';
+		$limits = 'LIMIT 0,40000';
 	else
-		$limits = 'LIMIT 20000,20000';
+		$limits = 'LIMIT 40000,80000';
 		
 	if( $user !== null )
 	{
